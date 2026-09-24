@@ -1,0 +1,23 @@
+{
+  "/Users/ipetinate/Projects/Xiaomi/Mirante/Mirante/Models/DataSource.swift" : {
+    "const-values" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug-iphonesimulator/Mirante.build/Objects-normal/arm64/DataSource.swiftconstvalues",
+    "dependencies" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug-iphonesimulator/Mirante.build/Objects-normal/arm64/DataSource.d",
+    "diagnostics" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug-iphonesimulator/Mirante.build/Objects-normal/arm64/DataSource.dia",
+    "object" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug-iphonesimulator/Mirante.build/Objects-normal/arm64/DataSource.o",
+    "swift-dependencies" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug-iphonesimulator/Mirante.build/Objects-normal/arm64/DataSource.swiftdeps"
+  },
+  "/Users/ipetinate/Projects/Xiaomi/Mirante/Mirante/Views/ConnectionSheet.swift" : {
+    "const-values" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug-iphonesimulator/Mirante.build/Objects-normal/arm64/ConnectionSheet.swiftconstvalues",
+    "dependencies" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug-iphonesimulator/Mirante.build/Objects-normal/arm64/ConnectionSheet.d",
+    "diagnostics" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug-iphonesimulator/Mirante.build/Objects-normal/arm64/ConnectionSheet.dia",
+    "object" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug-iphonesimulator/Mirante.build/Objects-normal/arm64/ConnectionSheet.o",
+    "swift-dependencies" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug-iphonesimulator/Mirante.build/Objects-normal/arm64/ConnectionSheet.swiftdeps"
+  },
+  "/Users/ipetinate/Projects/Xiaomi/Mirante/Mirante/Views/ContentView.swift" : {
+    "const-values" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug-iphonesimulator/Mirante.build/Objects-normal/arm64/ContentView.swiftconstvalues",
+    "dependencies" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug-iphonesimulator/Mirante.build/Objects-normal/arm64/ContentView.d",
+    "diagnostics" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug-iphonesimulator/Mirante.build/Objects-normal/arm64/ContentView.dia",
+    "object" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug-iphonesimulator/Mirante.build/Objects-normal/arm64/ContentView.o",
+    "swift-dependencies" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug-iphonesimulator/Mirante.build/Objects-normal/arm64/ContentView.swiftdeps"
+  }
+}

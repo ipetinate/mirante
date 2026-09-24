@@ -1,0 +1,67 @@
+{
+  "buildCommand" : {
+    "command" : "build",
+    "skipDependencies" : false,
+    "style" : "buildAndRun"
+  },
+  "configuredTargets" : [
+    {
+      "guid" : "8401c91a91a5ad978d820c19a3d4c1d0da901bc3df81b2ec34a9267c2d9a4be2"
+    },
+    {
+      "guid" : "8401c91a91a5ad978d820c19a3d4c1d07e2f35b57c5e341eb44345b267f41075"
+    }
+  ],
+  "containerPath" : "/Users/ipetinate/Projects/Xiaomi/Mirante/Mirante.xcodeproj",
+  "continueBuildingAfterErrors" : false,
+  "dependencyScope" : "workspace",
+  "enableIndexBuildArena" : false,
+  "hideShellScriptEnvironment" : false,
+  "parameters" : {
+    "action" : "build",
+    "activeArchitecture" : "arm64",
+    "activeRunDestination" : {
+      "disableOnlyActiveArch" : false,
+      "hostTargetedPlatform" : null,
+      "platform" : "macosx",
+      "sdk" : "macosx27.0",
+      "sdkVariant" : "macos",
+      "supportedArchitectures" : [
+        "arm64e",
+        "arm64",
+        "x86_64"
+      ],
+      "targetArchitecture" : "arm64"
+    },
+    "arenaInfo" : {
+      "buildIntermediatesPath" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build-tests-retry/Build/Intermediates.noindex",
+      "buildProductsPath" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build-tests-retry/Build/Products",
+      "derivedDataPath" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build-tests-retry",
+      "indexDataStoreFolderPath" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build-tests-retry/Index.noindex/DataStore",
+      "indexEnableDataStore" : true,
+      "indexPCHPath" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build-tests-retry/Index.noindex/PrecompiledHeaders",
+      "pchPath" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build-tests-retry/Build/Intermediates.noindex/PrecompiledHeaders"
+    },
+    "configurationName" : "Debug",
+    "overrides" : {
+      "commandLine" : {
+        "table" : {
+          "CODE_SIGN_IDENTITY" : "-",
+          "MACOSX_DEPLOYMENT_TARGET" : "26.0"
+        }
+      },
+      "synthesized" : {
+        "table" : {
+          "ENABLE_PREVIEWS" : "NO",
+          "ENABLE_XOJIT_PREVIEWS" : "YES"
+        }
+      }
+    }
+  },
+  "schemeCommand" : "test",
+  "showNonLoggedProgress" : true,
+  "useDryRun" : false,
+  "useImplicitDependencies" : true,
+  "useLegacyBuildLocations" : false,
+  "useParallelTargets" : true
+}

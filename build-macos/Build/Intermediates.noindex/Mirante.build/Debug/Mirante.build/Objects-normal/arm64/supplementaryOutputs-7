@@ -1,0 +1,23 @@
+{
+  "/Users/ipetinate/Projects/Xiaomi/Mirante/Mirante/Services/FprjExporter.swift" : {
+    "const-values" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build-macos/Build/Intermediates.noindex/Mirante.build/Debug/Mirante.build/Objects-normal/arm64/FprjExporter.swiftconstvalues",
+    "dependencies" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build-macos/Build/Intermediates.noindex/Mirante.build/Debug/Mirante.build/Objects-normal/arm64/FprjExporter.d",
+    "diagnostics" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build-macos/Build/Intermediates.noindex/Mirante.build/Debug/Mirante.build/Objects-normal/arm64/FprjExporter.dia",
+    "object" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build-macos/Build/Intermediates.noindex/Mirante.build/Debug/Mirante.build/Objects-normal/arm64/FprjExporter.o",
+    "swift-dependencies" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build-macos/Build/Intermediates.noindex/Mirante.build/Debug/Mirante.build/Objects-normal/arm64/FprjExporter.swiftdeps"
+  },
+  "/Users/ipetinate/Projects/Xiaomi/Mirante/Mirante/State/History.swift" : {
+    "const-values" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build-macos/Build/Intermediates.noindex/Mirante.build/Debug/Mirante.build/Objects-normal/arm64/History.swiftconstvalues",
+    "dependencies" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build-macos/Build/Intermediates.noindex/Mirante.build/Debug/Mirante.build/Objects-normal/arm64/History.d",
+    "diagnostics" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build-macos/Build/Intermediates.noindex/Mirante.build/Debug/Mirante.build/Objects-normal/arm64/History.dia",
+    "object" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build-macos/Build/Intermediates.noindex/Mirante.build/Debug/Mirante.build/Objects-normal/arm64/History.o",
+    "swift-dependencies" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build-macos/Build/Intermediates.noindex/Mirante.build/Debug/Mirante.build/Objects-normal/arm64/History.swiftdeps"
+  },
+  "/Users/ipetinate/Projects/Xiaomi/Mirante/Mirante/Views/Editor/ImageFileButton.swift" : {
+    "const-values" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build-macos/Build/Intermediates.noindex/Mirante.build/Debug/Mirante.build/Objects-normal/arm64/ImageFileButton.swiftconstvalues",
+    "dependencies" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build-macos/Build/Intermediates.noindex/Mirante.build/Debug/Mirante.build/Objects-normal/arm64/ImageFileButton.d",
+    "diagnostics" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build-macos/Build/Intermediates.noindex/Mirante.build/Debug/Mirante.build/Objects-normal/arm64/ImageFileButton.dia",
+    "object" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build-macos/Build/Intermediates.noindex/Mirante.build/Debug/Mirante.build/Objects-normal/arm64/ImageFileButton.o",
+    "swift-dependencies" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build-macos/Build/Intermediates.noindex/Mirante.build/Debug/Mirante.build/Objects-normal/arm64/ImageFileButton.swiftdeps"
+  }
+}

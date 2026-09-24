@@ -1,0 +1,30 @@
+{
+  "/Users/ipetinate/Projects/Xiaomi/Mirante/Mirante/MiranteApp.swift" : {
+    "const-values" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build-gui/Build/Intermediates.noindex/Mirante.build/Debug-iphonesimulator/Mirante.build/Objects-normal/arm64/MiranteApp.swiftconstvalues",
+    "dependencies" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build-gui/Build/Intermediates.noindex/Mirante.build/Debug-iphonesimulator/Mirante.build/Objects-normal/arm64/MiranteApp.d",
+    "diagnostics" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build-gui/Build/Intermediates.noindex/Mirante.build/Debug-iphonesimulator/Mirante.build/Objects-normal/arm64/MiranteApp.dia",
+    "object" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build-gui/Build/Intermediates.noindex/Mirante.build/Debug-iphonesimulator/Mirante.build/Objects-normal/arm64/MiranteApp.o",
+    "swift-dependencies" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build-gui/Build/Intermediates.noindex/Mirante.build/Debug-iphonesimulator/Mirante.build/Objects-normal/arm64/MiranteApp.swiftdeps"
+  },
+  "/Users/ipetinate/Projects/Xiaomi/Mirante/Mirante/Services/PreviewRenderer.swift" : {
+    "const-values" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build-gui/Build/Intermediates.noindex/Mirante.build/Debug-iphonesimulator/Mirante.build/Objects-normal/arm64/PreviewRenderer.swiftconstvalues",
+    "dependencies" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build-gui/Build/Intermediates.noindex/Mirante.build/Debug-iphonesimulator/Mirante.build/Objects-normal/arm64/PreviewRenderer.d",
+    "diagnostics" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build-gui/Build/Intermediates.noindex/Mirante.build/Debug-iphonesimulator/Mirante.build/Objects-normal/arm64/PreviewRenderer.dia",
+    "object" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build-gui/Build/Intermediates.noindex/Mirante.build/Debug-iphonesimulator/Mirante.build/Objects-normal/arm64/PreviewRenderer.o",
+    "swift-dependencies" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build-gui/Build/Intermediates.noindex/Mirante.build/Debug-iphonesimulator/Mirante.build/Objects-normal/arm64/PreviewRenderer.swiftdeps"
+  },
+  "/Users/ipetinate/Projects/Xiaomi/Mirante/Mirante/Views/Sheets/NewProjectSheet.swift" : {
+    "const-values" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build-gui/Build/Intermediates.noindex/Mirante.build/Debug-iphonesimulator/Mirante.build/Objects-normal/arm64/NewProjectSheet.swiftconstvalues",
+    "dependencies" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build-gui/Build/Intermediates.noindex/Mirante.build/Debug-iphonesimulator/Mirante.build/Objects-normal/arm64/NewProjectSheet.d",
+    "diagnostics" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build-gui/Build/Intermediates.noindex/Mirante.build/Debug-iphonesimulator/Mirante.build/Objects-normal/arm64/NewProjectSheet.dia",
+    "object" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build-gui/Build/Intermediates.noindex/Mirante.build/Debug-iphonesimulator/Mirante.build/Objects-normal/arm64/NewProjectSheet.o",
+    "swift-dependencies" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build-gui/Build/Intermediates.noindex/Mirante.build/Debug-iphonesimulator/Mirante.build/Objects-normal/arm64/NewProjectSheet.swiftdeps"
+  },
+  "/Users/ipetinate/Projects/Xiaomi/Mirante/Mirante/Views/Sheets/PublishSheet.swift" : {
+    "const-values" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build-gui/Build/Intermediates.noindex/Mirante.build/Debug-iphonesimulator/Mirante.build/Objects-normal/arm64/PublishSheet.swiftconstvalues",
+    "dependencies" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build-gui/Build/Intermediates.noindex/Mirante.build/Debug-iphonesimulator/Mirante.build/Objects-normal/arm64/PublishSheet.d",
+    "diagnostics" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build-gui/Build/Intermediates.noindex/Mirante.build/Debug-iphonesimulator/Mirante.build/Objects-normal/arm64/PublishSheet.dia",
+    "object" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build-gui/Build/Intermediates.noindex/Mirante.build/Debug-iphonesimulator/Mirante.build/Objects-normal/arm64/PublishSheet.o",
+    "swift-dependencies" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build-gui/Build/Intermediates.noindex/Mirante.build/Debug-iphonesimulator/Mirante.build/Objects-normal/arm64/PublishSheet.swiftdeps"
+  }
+}

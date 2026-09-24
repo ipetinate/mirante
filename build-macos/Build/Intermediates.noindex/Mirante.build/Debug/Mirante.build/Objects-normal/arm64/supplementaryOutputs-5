@@ -1,0 +1,23 @@
+{
+  "/Users/ipetinate/Projects/Xiaomi/Mirante/Mirante/State/EditorState.swift" : {
+    "const-values" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build-macos/Build/Intermediates.noindex/Mirante.build/Debug/Mirante.build/Objects-normal/arm64/EditorState.swiftconstvalues",
+    "dependencies" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build-macos/Build/Intermediates.noindex/Mirante.build/Debug/Mirante.build/Objects-normal/arm64/EditorState.d",
+    "diagnostics" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build-macos/Build/Intermediates.noindex/Mirante.build/Debug/Mirante.build/Objects-normal/arm64/EditorState.dia",
+    "object" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build-macos/Build/Intermediates.noindex/Mirante.build/Debug/Mirante.build/Objects-normal/arm64/EditorState.o",
+    "swift-dependencies" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build-macos/Build/Intermediates.noindex/Mirante.build/Debug/Mirante.build/Objects-normal/arm64/EditorState.swiftdeps"
+  },
+  "/Users/ipetinate/Projects/Xiaomi/Mirante/Mirante/Views/Editor/EditorToolbar.swift" : {
+    "const-values" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build-macos/Build/Intermediates.noindex/Mirante.build/Debug/Mirante.build/Objects-normal/arm64/EditorToolbar.swiftconstvalues",
+    "dependencies" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build-macos/Build/Intermediates.noindex/Mirante.build/Debug/Mirante.build/Objects-normal/arm64/EditorToolbar.d",
+    "diagnostics" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build-macos/Build/Intermediates.noindex/Mirante.build/Debug/Mirante.build/Objects-normal/arm64/EditorToolbar.dia",
+    "object" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build-macos/Build/Intermediates.noindex/Mirante.build/Debug/Mirante.build/Objects-normal/arm64/EditorToolbar.o",
+    "swift-dependencies" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build-macos/Build/Intermediates.noindex/Mirante.build/Debug/Mirante.build/Objects-normal/arm64/EditorToolbar.swiftdeps"
+  },
+  "/Users/ipetinate/Projects/Xiaomi/Mirante/Mirante/Views/ExploreView.swift" : {
+    "const-values" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build-macos/Build/Intermediates.noindex/Mirante.build/Debug/Mirante.build/Objects-normal/arm64/ExploreView.swiftconstvalues",
+    "dependencies" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build-macos/Build/Intermediates.noindex/Mirante.build/Debug/Mirante.build/Objects-normal/arm64/ExploreView.d",
+    "diagnostics" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build-macos/Build/Intermediates.noindex/Mirante.build/Debug/Mirante.build/Objects-normal/arm64/ExploreView.dia",
+    "object" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build-macos/Build/Intermediates.noindex/Mirante.build/Debug/Mirante.build/Objects-normal/arm64/ExploreView.o",
+    "swift-dependencies" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build-macos/Build/Intermediates.noindex/Mirante.build/Debug/Mirante.build/Objects-normal/arm64/ExploreView.swiftdeps"
+  }
+}

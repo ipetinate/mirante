@@ -1,0 +1,109 @@
+{
+  "" : {
+    "diagnostics" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/MiranteTests-primary.dia",
+    "emit-module-dependencies" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/MiranteTests-primary-emit-module.d",
+    "emit-module-diagnostics" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/MiranteTests-primary-emit-module.dia",
+    "pch" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/MiranteTests-primary-Bridging-header.pch",
+    "swift-dependencies" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/MiranteTests-primary.swiftdeps"
+  },
+  "/Users/ipetinate/Projects/Xiaomi/Mirante/MiranteTests/BLETransportTests.swift" : {
+    "const-values" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/BLETransportTests.swiftconstvalues",
+    "dependencies" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/BLETransportTests.d",
+    "diagnostics" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/BLETransportTests.dia",
+    "index-unit-output-path" : "/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/BLETransportTests.o",
+    "llvm-bc" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/BLETransportTests.bc",
+    "object" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/BLETransportTests.o",
+    "swift-dependencies" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/BLETransportTests.swiftdeps",
+    "swiftmodule" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/BLETransportTests~partial.swiftmodule"
+  },
+  "/Users/ipetinate/Projects/Xiaomi/Mirante/MiranteTests/BandMatcherTests.swift" : {
+    "const-values" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/BandMatcherTests.swiftconstvalues",
+    "dependencies" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/BandMatcherTests.d",
+    "diagnostics" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/BandMatcherTests.dia",
+    "index-unit-output-path" : "/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/BandMatcherTests.o",
+    "llvm-bc" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/BandMatcherTests.bc",
+    "object" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/BandMatcherTests.o",
+    "swift-dependencies" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/BandMatcherTests.swiftdeps",
+    "swiftmodule" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/BandMatcherTests~partial.swiftmodule"
+  },
+  "/Users/ipetinate/Projects/Xiaomi/Mirante/MiranteTests/DataSourceTests.swift" : {
+    "const-values" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/DataSourceTests.swiftconstvalues",
+    "dependencies" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/DataSourceTests.d",
+    "diagnostics" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/DataSourceTests.dia",
+    "index-unit-output-path" : "/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/DataSourceTests.o",
+    "llvm-bc" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/DataSourceTests.bc",
+    "object" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/DataSourceTests.o",
+    "swift-dependencies" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/DataSourceTests.swiftdeps",
+    "swiftmodule" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/DataSourceTests~partial.swiftmodule"
+  },
+  "/Users/ipetinate/Projects/Xiaomi/Mirante/MiranteTests/DeviceTests.swift" : {
+    "const-values" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/DeviceTests.swiftconstvalues",
+    "dependencies" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/DeviceTests.d",
+    "diagnostics" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/DeviceTests.dia",
+    "index-unit-output-path" : "/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/DeviceTests.o",
+    "llvm-bc" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/DeviceTests.bc",
+    "object" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/DeviceTests.o",
+    "swift-dependencies" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/DeviceTests.swiftdeps",
+    "swiftmodule" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/DeviceTests~partial.swiftmodule"
+  },
+  "/Users/ipetinate/Projects/Xiaomi/Mirante/MiranteTests/EditorStateExtendedTests.swift" : {
+    "const-values" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/EditorStateExtendedTests.swiftconstvalues",
+    "dependencies" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/EditorStateExtendedTests.d",
+    "diagnostics" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/EditorStateExtendedTests.dia",
+    "index-unit-output-path" : "/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/EditorStateExtendedTests.o",
+    "llvm-bc" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/EditorStateExtendedTests.bc",
+    "object" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/EditorStateExtendedTests.o",
+    "swift-dependencies" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/EditorStateExtendedTests.swiftdeps",
+    "swiftmodule" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/EditorStateExtendedTests~partial.swiftmodule"
+  },
+  "/Users/ipetinate/Projects/Xiaomi/Mirante/MiranteTests/EditorStateTests.swift" : {
+    "const-values" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/EditorStateTests.swiftconstvalues",
+    "dependencies" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/EditorStateTests.d",
+    "diagnostics" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/EditorStateTests.dia",
+    "index-unit-output-path" : "/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/EditorStateTests.o",
+    "llvm-bc" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/EditorStateTests.bc",
+    "object" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/EditorStateTests.o",
+    "swift-dependencies" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/EditorStateTests.swiftdeps",
+    "swiftmodule" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/EditorStateTests~partial.swiftmodule"
+  },
+  "/Users/ipetinate/Projects/Xiaomi/Mirante/MiranteTests/FprjExporterTests.swift" : {
+    "const-values" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/FprjExporterTests.swiftconstvalues",
+    "dependencies" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/FprjExporterTests.d",
+    "diagnostics" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/FprjExporterTests.dia",
+    "index-unit-output-path" : "/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/FprjExporterTests.o",
+    "llvm-bc" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/FprjExporterTests.bc",
+    "object" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/FprjExporterTests.o",
+    "swift-dependencies" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/FprjExporterTests.swiftdeps",
+    "swiftmodule" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/FprjExporterTests~partial.swiftmodule"
+  },
+  "/Users/ipetinate/Projects/Xiaomi/Mirante/MiranteTests/HistoryTests.swift" : {
+    "const-values" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/HistoryTests.swiftconstvalues",
+    "dependencies" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/HistoryTests.d",
+    "diagnostics" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/HistoryTests.dia",
+    "index-unit-output-path" : "/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/HistoryTests.o",
+    "llvm-bc" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/HistoryTests.bc",
+    "object" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/HistoryTests.o",
+    "swift-dependencies" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/HistoryTests.swiftdeps",
+    "swiftmodule" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/HistoryTests~partial.swiftmodule"
+  },
+  "/Users/ipetinate/Projects/Xiaomi/Mirante/MiranteTests/WatchFaceProjectTests.swift" : {
+    "const-values" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/WatchFaceProjectTests.swiftconstvalues",
+    "dependencies" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/WatchFaceProjectTests.d",
+    "diagnostics" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/WatchFaceProjectTests.dia",
+    "index-unit-output-path" : "/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/WatchFaceProjectTests.o",
+    "llvm-bc" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/WatchFaceProjectTests.bc",
+    "object" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/WatchFaceProjectTests.o",
+    "swift-dependencies" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/WatchFaceProjectTests.swiftdeps",
+    "swiftmodule" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/WatchFaceProjectTests~partial.swiftmodule"
+  },
+  "/Users/ipetinate/Projects/Xiaomi/Mirante/MiranteTests/WidgetTests.swift" : {
+    "const-values" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/WidgetTests.swiftconstvalues",
+    "dependencies" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/WidgetTests.d",
+    "diagnostics" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/WidgetTests.dia",
+    "index-unit-output-path" : "/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/WidgetTests.o",
+    "llvm-bc" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/WidgetTests.bc",
+    "object" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/WidgetTests.o",
+    "swift-dependencies" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/WidgetTests.swiftdeps",
+    "swiftmodule" : "/Users/ipetinate/Projects/Xiaomi/Mirante/build/Build/Intermediates.noindex/Mirante.build/Debug/MiranteTests.build/Objects-normal/arm64/WidgetTests~partial.swiftmodule"
+  }
+}
