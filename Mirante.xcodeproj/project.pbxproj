@@ -10,6 +10,7 @@
 		0659B0E4EBCF093CC829B1B6 /* BLETransport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E970C46EE1271C8AC9A5983 /* BLETransport.swift */; };
 		09D29475755E6668DEC64253 /* FprjExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4941C5A99947E381834E93FA /* FprjExporter.swift */; };
 		0B56C3E02B107491B0D9415D /* MiranteApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4455774F09820D272E091AEE /* MiranteApp.swift */; };
+		1EED5837D8535AC5E1CF0BFB /* FaceBinCompiler.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2E3E521E9744F312147EE28 /* FaceBinCompiler.swift */; };
 		1F78A75F356C0B5865FA2971 /* Widget.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B30F4F23FF0E6CDB6A96A6 /* Widget.swift */; };
 		21976B31EB95C3AF2F2E00A6 /* ExploreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75C6D34B0F6B851833D5C5B3 /* ExploreView.swift */; };
 		23A6D2DBDE9C74AA07FF9C89 /* XiaomiProtocolSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBAD4B46A409D9027D7EFE33 /* XiaomiProtocolSession.swift */; };
@@ -35,7 +36,6 @@
 		7FD0E92EF5CB0E4BA7702895 /* BandMatcherTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE8F252DF593FEC298C1ECFB /* BandMatcherTests.swift */; };
 		8631937F4158C7AEA51E60B9 /* ImageTransform.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27308945DB57B833210A7378 /* ImageTransform.swift */; };
 		86955F3D5D3D141483010B98 /* XiaomiCrypto.swift in Sources */ = {isa = PBXBuildFile; fileRef = 544350F53171C05E3B0E9067 /* XiaomiCrypto.swift */; };
-		8D88CDCF9D42DC9BF94C4007 /* StoreConfigSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CE1CB2DF07BEB182A15F9E5 /* StoreConfigSheet.swift */; };
 		8EDE9F3CB26CD8E0A5887DCF /* BandTransport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30636C9FCC3FC7B416959EE6 /* BandTransport.swift */; };
 		9BF2CACF938D18D8B4095B99 /* PublishSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09C224034FB81440E1BA923B /* PublishSheet.swift */; };
 		9D8B206E7AC7E29E13AFFEB0 /* HistoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62857425C7489803BC1E42D6 /* HistoryTests.swift */; };
@@ -48,6 +48,7 @@
 		C60952328A412D7723456A24 /* StoreClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78D6D81F29CF803F0E7C45E2 /* StoreClient.swift */; };
 		C7B840B85812C983A24E89B4 /* FprjExporterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8FFB67486596CC95EF36A58 /* FprjExporterTests.swift */; };
 		CEA5CB2D5A898376E5295ED2 /* StoreFaceDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53BF8C093E0CC534716E7D53 /* StoreFaceDetailView.swift */; };
+		CFF3FE6712A44B71238A8A8E /* LocalStoreToken.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA7A556E258DB81ED50A5DBD /* LocalStoreToken.swift */; };
 		D1A14ED57ABD9C9BFC9B2698 /* ExportSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9B0E38A90837F8299FD446E /* ExportSheet.swift */; };
 		D30D8258AC20682C5780629B /* WatchFaceProjectTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB87D393ECED3CB90B97C996 /* WatchFaceProjectTests.swift */; };
 		D33F7714754FB5C54B352507 /* AuthKeySheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 197728C41EE9E3F6CA86BBC5 /* AuthKeySheet.swift */; };
@@ -55,6 +56,7 @@
 		E6996F489D52F0E2494DFEB1 /* NewProjectSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03CCCD8347A8A09F5E26C2E8 /* NewProjectSheet.swift */; };
 		E9D7B1FEAC18EE6DEB583740 /* Store.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F01BEE10C767C5289360401 /* Store.swift */; };
 		EA8366E63D70E7EEE5A49535 /* WatchFaceProject.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53268034865230B399587E9C /* WatchFaceProject.swift */; };
+		EB4FDB6662CA12339216DB61 /* FaceBinCompilerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16FBAF505CB1ACA99CF7C014 /* FaceBinCompilerTests.swift */; };
 		EE122E0514B1C12EF0337F74 /* ConnectionSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0EE0F20F3CC3F165E8A25F69 /* ConnectionSheet.swift */; };
 		EE938C112E1B2A60FBF36665 /* FieldHelp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93BB9DBBC979C1D6DA7C40F9 /* FieldHelp.swift */; };
 		F31C3BB0004A9DD8EAFBC542 /* PreviewRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11407996167C0FD661E8EAA5 /* PreviewRenderer.swift */; };
@@ -75,10 +77,11 @@
 		03CCCD8347A8A09F5E26C2E8 /* NewProjectSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewProjectSheet.swift; sourceTree = "<group>"; };
 		0403E9DE0AEC2B796EA3DEE8 /* WidgetTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetTests.swift; sourceTree = "<group>"; };
 		041697055B63495E5843B6C3 /* LayersSidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayersSidebarView.swift; sourceTree = "<group>"; };
-		0775ECACCB3D1AA731E60963 /* Mirante.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Mirante.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		0775ECACCB3D1AA731E60963 /* Mirante.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Mirante.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		09C224034FB81440E1BA923B /* PublishSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublishSheet.swift; sourceTree = "<group>"; };
 		0EE0F20F3CC3F165E8A25F69 /* ConnectionSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionSheet.swift; sourceTree = "<group>"; };
 		11407996167C0FD661E8EAA5 /* PreviewRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewRenderer.swift; sourceTree = "<group>"; };
+		16FBAF505CB1ACA99CF7C014 /* FaceBinCompilerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FaceBinCompilerTests.swift; sourceTree = "<group>"; };
 		197728C41EE9E3F6CA86BBC5 /* AuthKeySheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthKeySheet.swift; sourceTree = "<group>"; };
 		1F01BEE10C767C5289360401 /* Store.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Store.swift; sourceTree = "<group>"; };
 		205AC94A798378D167F7102E /* DeviceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceTests.swift; sourceTree = "<group>"; };
@@ -91,7 +94,6 @@
 		449A423283F31B57A717CCA9 /* AuthKeyStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthKeyStore.swift; sourceTree = "<group>"; };
 		4941C5A99947E381834E93FA /* FprjExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FprjExporter.swift; sourceTree = "<group>"; };
 		4953EC89772B84F5A62E29C8 /* History.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = History.swift; sourceTree = "<group>"; };
-		4CE1CB2DF07BEB182A15F9E5 /* StoreConfigSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreConfigSheet.swift; sourceTree = "<group>"; };
 		53268034865230B399587E9C /* WatchFaceProject.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchFaceProject.swift; sourceTree = "<group>"; };
 		53BF8C093E0CC534716E7D53 /* StoreFaceDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreFaceDetailView.swift; sourceTree = "<group>"; };
 		544350F53171C05E3B0E9067 /* XiaomiCrypto.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XiaomiCrypto.swift; sourceTree = "<group>"; };
@@ -110,6 +112,7 @@
 		91BEC7D605A17856DB1E8079 /* ForcedWindowFrame.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForcedWindowFrame.swift; sourceTree = "<group>"; };
 		93BB9DBBC979C1D6DA7C40F9 /* FieldHelp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FieldHelp.swift; sourceTree = "<group>"; };
 		95CD75FE7E5DA45B9A5F11D2 /* Device.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Device.swift; sourceTree = "<group>"; };
+		A2E3E521E9744F312147EE28 /* FaceBinCompiler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FaceBinCompiler.swift; sourceTree = "<group>"; };
 		A44E625BE9E3A8F11D0A111C /* Mirante.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Mirante.entitlements; sourceTree = "<group>"; };
 		A5AFB6DA6FAE590F3C176BB7 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A9F8093E67FEA9A446C095E6 /* EditorCanvasView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditorCanvasView.swift; sourceTree = "<group>"; };
@@ -123,6 +126,7 @@
 		D3B30F4F23FF0E6CDB6A96A6 /* Widget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Widget.swift; sourceTree = "<group>"; };
 		D6D95CDAAAA6094B0254F9CE /* XiaomiProto.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XiaomiProto.swift; sourceTree = "<group>"; };
 		D9B0E38A90837F8299FD446E /* ExportSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportSheet.swift; sourceTree = "<group>"; };
+		DA7A556E258DB81ED50A5DBD /* LocalStoreToken.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalStoreToken.swift; sourceTree = "<group>"; };
 		DB87D393ECED3CB90B97C996 /* WatchFaceProjectTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchFaceProjectTests.swift; sourceTree = "<group>"; };
 		EBAD4B46A409D9027D7EFE33 /* XiaomiProtocolSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XiaomiProtocolSession.swift; sourceTree = "<group>"; };
 		F130911354E1CFDC1937BA18 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -146,6 +150,7 @@
 				CAEB7F635C2D22CDD1BD4AFC /* BandMatcher.swift */,
 				30636C9FCC3FC7B416959EE6 /* BandTransport.swift */,
 				6E970C46EE1271C8AC9A5983 /* BLETransport.swift */,
+				A2E3E521E9744F312147EE28 /* FaceBinCompiler.swift */,
 				4941C5A99947E381834E93FA /* FprjExporter.swift */,
 				C85EFB9914F149A4C84A50F1 /* MiFitnessKeyExtractor.swift */,
 				11407996167C0FD661E8EAA5 /* PreviewRenderer.swift */,
@@ -202,6 +207,7 @@
 				205AC94A798378D167F7102E /* DeviceTests.swift */,
 				65951E68DF56AE75BF9BCC47 /* EditorStateExtendedTests.swift */,
 				20C8C7236B6061B96002F963 /* EditorStateTests.swift */,
+				16FBAF505CB1ACA99CF7C014 /* FaceBinCompilerTests.swift */,
 				B8FFB67486596CC95EF36A58 /* FprjExporterTests.swift */,
 				62857425C7489803BC1E42D6 /* HistoryTests.swift */,
 				DB87D393ECED3CB90B97C996 /* WatchFaceProjectTests.swift */,
@@ -231,7 +237,6 @@
 				D9B0E38A90837F8299FD446E /* ExportSheet.swift */,
 				03CCCD8347A8A09F5E26C2E8 /* NewProjectSheet.swift */,
 				09C224034FB81440E1BA923B /* PublishSheet.swift */,
-				4CE1CB2DF07BEB182A15F9E5 /* StoreConfigSheet.swift */,
 			);
 			path = Sheets;
 			sourceTree = "<group>";
@@ -248,6 +253,7 @@
 			isa = PBXGroup;
 			children = (
 				A5AFB6DA6FAE590F3C176BB7 /* Assets.xcassets */,
+				DA7A556E258DB81ED50A5DBD /* LocalStoreToken.swift */,
 				A44E625BE9E3A8F11D0A111C /* Mirante.entitlements */,
 			);
 			path = Resources;
@@ -390,6 +396,7 @@
 				6069984338DDE1001B1AE7BA /* EditorToolbar.swift in Sources */,
 				21976B31EB95C3AF2F2E00A6 /* ExploreView.swift in Sources */,
 				D1A14ED57ABD9C9BFC9B2698 /* ExportSheet.swift in Sources */,
+				1EED5837D8535AC5E1CF0BFB /* FaceBinCompiler.swift in Sources */,
 				EE938C112E1B2A60FBF36665 /* FieldHelp.swift in Sources */,
 				441CE69E2C6D066931875C53 /* ForcedWindowFrame.swift in Sources */,
 				09D29475755E6668DEC64253 /* FprjExporter.swift in Sources */,
@@ -400,6 +407,7 @@
 				B86FDB775AF7AA1EBE294F95 /* IntClamp.swift in Sources */,
 				4E4DAFA8BA651A5199F83BCC /* LayersSidebarView.swift in Sources */,
 				7BF4CFE75E5E8D328F6AA319 /* LivePreviewView.swift in Sources */,
+				CFF3FE6712A44B71238A8A8E /* LocalStoreToken.swift in Sources */,
 				DA0448FD65CB764AD4E226AB /* MiFitnessKeyExtractor.swift in Sources */,
 				0B56C3E02B107491B0D9415D /* MiranteApp.swift in Sources */,
 				E6996F489D52F0E2494DFEB1 /* NewProjectSheet.swift in Sources */,
@@ -407,7 +415,6 @@
 				9BF2CACF938D18D8B4095B99 /* PublishSheet.swift in Sources */,
 				E9D7B1FEAC18EE6DEB583740 /* Store.swift in Sources */,
 				C60952328A412D7723456A24 /* StoreClient.swift in Sources */,
-				8D88CDCF9D42DC9BF94C4007 /* StoreConfigSheet.swift in Sources */,
 				711BE5EAEBC50C54B79552E6 /* StoreConfigStore.swift in Sources */,
 				CEA5CB2D5A898376E5295ED2 /* StoreFaceDetailView.swift in Sources */,
 				EA8366E63D70E7EEE5A49535 /* WatchFaceProject.swift in Sources */,
@@ -430,6 +437,7 @@
 				653D8999295CEDFAD2DBDA49 /* DeviceTests.swift in Sources */,
 				774071F85C9673C61ECEBC12 /* EditorStateExtendedTests.swift in Sources */,
 				42AD2FBE089725A5F752AC77 /* EditorStateTests.swift in Sources */,
+				EB4FDB6662CA12339216DB61 /* FaceBinCompilerTests.swift in Sources */,
 				C7B840B85812C983A24E89B4 /* FprjExporterTests.swift in Sources */,
 				9D8B206E7AC7E29E13AFFEB0 /* HistoryTests.swift in Sources */,
 				D30D8258AC20682C5780629B /* WatchFaceProjectTests.swift in Sources */,
@@ -456,7 +464,6 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = ZJCYJF66KY;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Mirante;
@@ -472,7 +479,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 0.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.ipetinate.Mirante;
+				PRODUCT_BUNDLE_IDENTIFIER = com.mirante.Mirante;
 				PRODUCT_NAME = Mirante;
 				SDKROOT = auto;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
@@ -648,7 +655,6 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = ZJCYJF66KY;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Mirante;
@@ -664,7 +670,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 0.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.ipetinate.Mirante;
+				PRODUCT_BUNDLE_IDENTIFIER = com.mirante.Mirante;
 				PRODUCT_NAME = Mirante;
 				SDKROOT = auto;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";

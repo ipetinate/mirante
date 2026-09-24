@@ -82,7 +82,7 @@ struct StoreFaceDetailView: View {
             }
             .buttonStyle(.borderedProminent)
             .controlSize(.large)
-            .disabled(!face.compiled || isDownloading || !config.isConfigured)
+            .disabled(!face.compiled || isDownloading)
             #if os(macOS)
             .keyboardShortcut(.return, modifiers: [])
             #endif
@@ -156,11 +156,8 @@ struct StoreFaceDetailView: View {
     }
 
     private var footnote: String {
-        if !config.isConfigured {
-            return "The store isn't configured on this device. Set it in Store Settings to install public faces."
-        }
         if !face.compiled {
-            return "The store's CI pipeline is compiling the binary from the published .fprj. Check back shortly to install it."
+            return "Faces published before in-app compilation existed aren't compiled yet on the store."
         }
         return "Installs the store's compiled binary as-is. Mirante validates the file format and size before sending."
     }

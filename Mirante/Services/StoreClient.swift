@@ -12,9 +12,9 @@ enum StoreError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .notConfigured:
-            return String(localized: "The store isn't configured yet. Set the repository owner and publisher handle in the Store settings.")
+            return String(localized: "The store isn't reachable on this device.")
         case .missingToken:
-            return String(localized: "A GitHub token is required to publish. Add one in the Store settings (only needed for publishing, not for browsing).")
+            return String(localized: "A GitHub token is required to publish. The token bootstrap from the gh CLI wasn't found.")
         case .server(let code, let message):
             return String(localized: "GitHub responded \(code). \(message)")
         case .badResponse:
@@ -93,27 +93,30 @@ struct StoreClient {
 
     // MARK: - Publishing (authenticated)
 
-    /// Publishes a face: writes the source `.fprj`, `metadata.json` and
-    /// `preview.png` into `faces/<publisher>/<slug>/`, then updates
-    /// `index.json` so the face shows up in the app immediately with
-    /// `compiled: false` (the store CI compiles `face.bin` and flips it).
+    /// Publishes a face: writes the source `.fprj`, `metadata.json`, the
+    /// rendered `preview.png` and — when the app compiled it — `face.bin`
+    /// into `faces/<publisher>/<slug>/`, then updates `index.json` so the face
+    /// shows up in the app immediately (as compiled when a `.bin` is given).
     func publish(
         face: StoreFace,
         fprjData: Data,
         metadataData: Data,
         previewData: Data,
+        binData: Data?,
         config: StoreConfig,
         token: String
     ) async throws {
-        guard config.isConfigured else { throw StoreError.notConfigured }
         let fprjPath = "\(face.sourcePath)"
         let metaPath = "\(face.directory)/metadata.json"
         let previewPath = face.previewPath ?? "\(face.directory)/preview.png"
 
-        // Write the three derived files first, then the manifest.
+        // Write the derived files first, then the manifest.
         try await writeFile(path: fprjPath, data: fprjData, message: "Publish \(face.name) — \(face.version) (source)", config: config, token: token)
         try await writeFile(path: metaPath, data: metadataData, message: "Publish \(face.name) — \(face.version) (metadata)", config: config, token: token)
         try await writeFile(path: previewPath, data: previewData, message: "Publish \(face.name) — \(face.version) (preview)", config: config, token: token)
+        if let binData, let binaryPath = face.binaryPath {
+            try await writeFile(path: binaryPath, data: binData, message: "Publish \(face.name) — \(face.version) (compiled)", config: config, token: token)
+        }
 
         var manifest = (try? await fetchManifest(config)) ?? StoreManifest(schemaVersion: 1, generatedAt: Date(), publisher: nil, faces: [])
         manifest.faces.removeAll { $0.id == face.id }
@@ -173,13 +176,15 @@ extension StoreConfig {
 extension StoreFace {
     /// Creates a `StoreFace` (the `metadata.json` payload and `index.json`
     /// record) for a project about to be published, laying it out under
-    /// `faces/<publisher>/<slug>/`.
+    /// `faces/<publisher>/<slug>/`. When `binData` is provided the face is
+    /// published as compiled (the in-app compiler built the `.bin`).
     static func make(
         from project: WatchFaceProject,
         config: StoreConfig,
         version: String,
         description: String,
-        tags: [String]
+        tags: [String],
+        binData: Data? = nil
     ) -> StoreFace {
         let directory = "faces/\(slug(config.publisherHandle))/\(slug(project.name))"
         return StoreFace(
@@ -191,8 +196,8 @@ extension StoreFace {
             version: version,
             updatedAt: Date(),
             author: StoreAuthor(handle: config.publisherHandle, name: config.publisherName.isEmpty ? config.publisherHandle : config.publisherName),
-            compiled: false,
-            binarySize: nil,
+            compiled: binData != nil,
+            binarySize: binData?.count,
             sourcePath: "\(directory)/face.fprj",
             binaryPath: "\(directory)/face.bin",
             previewPath: "\(directory)/preview.png"

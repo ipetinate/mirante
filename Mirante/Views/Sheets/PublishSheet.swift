@@ -1,9 +1,9 @@
 import SwiftUI
 
 /// Publishes the current editable project to the GitHub store: writes the
-/// source `.fprj`, `metadata.json` and a rendered `preview.png` under
-/// `faces/<publisher>/<slug>/`, plus an `index.json` update. The store's CI
-/// compiles `face.bin` later; the face shows up in Explore immediately.
+/// source `.fprj`, `metadata.json`, a rendered `preview.png` and the compiled
+/// `face.bin` (built in-app) under `faces/<publisher>/<slug>/`, plus an
+/// `index.json` update. The face shows up in Explore immediately as compiled.
 struct PublishSheet: View {
     @Environment(EditorState.self) private var editor
     @Environment(\.dismiss) private var dismiss
@@ -12,7 +12,6 @@ struct PublishSheet: View {
     @State private var version = "1.0.0"
     @State private var description = ""
     @State private var tags = ""
-    @State private var showConfig = false
     @State private var isPublishing = false
     @State private var errorMessage: String?
 
@@ -34,13 +33,10 @@ struct PublishSheet: View {
                     let config = StoreConfigStore.config
                     LabeledContent("Repository") {
                         Text("\(config.owner)/\(config.repository)")
-                            .foregroundStyle(config.isConfigured ? .primary : .tertiary)
                     }
                     LabeledContent("Publisher") {
                         Text(config.publisherName.isEmpty ? config.publisherHandle : config.publisherName)
-                            .foregroundStyle(config.isConfigured ? .primary : .tertiary)
                     }
-                    Button("Store Settings…") { showConfig = true }
                 }
 
                 Section {
@@ -59,17 +55,11 @@ struct PublishSheet: View {
                         }
                     }
                     .buttonStyle(.borderedProminent)
-                    .disabled(!StoreConfigStore.isConfigured || name.trimmingCharacters(in: .whitespaces).isEmpty || isPublishing)
-
-                    if !StoreConfigStore.isConfigured {
-                        Text("Set the store repository and publisher in Store Settings before publishing.")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                    }
+                    .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty || isPublishing)
                 }
 
                 Section {
-                    Text("Publishing stores the editable project plus a rendered preview. The store's CI pipeline compiles the .bin on a Windows runner; until then the face is listed as \u{201C}compiling\u{201D}. You can keep publishing updates — each version overwrites the previous one.")
+                    Text("Publishing stores the editable project, a rendered preview and the compiled .bin (built in-app) — the face is immediately installable from the store. Each version overwrites the previous one.")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 }
@@ -84,9 +74,6 @@ struct PublishSheet: View {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel", role: .cancel) { dismiss() }
                 }
-            }
-            .sheet(isPresented: $showConfig) {
-                StoreConfigSheet()
             }
             .onAppear { if name.isEmpty { name = editor.project.name } }
             .alert("Publish Failed", isPresented: Binding(
@@ -121,7 +108,15 @@ struct PublishSheet: View {
 
         let config = StoreConfigStore.config
         let tagList = tags.split(separator: ",").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
-        let face = StoreFace.make(from: project, config: config, version: version.isEmpty ? "1.0.0" : version, description: description, tags: tagList)
+
+        let binData: Data
+        do {
+            binData = try FaceBinCompiler.compile(project)
+        } catch {
+            errorMessage = String(localized: "Could not compile the .bin for this face.")
+            return
+        }
+        let face = StoreFace.make(from: project, config: config, version: version.isEmpty ? "1.0.0" : version, description: description, tags: tagList, binData: binData)
 
         let metadata: Data
         do {
@@ -143,6 +138,7 @@ struct PublishSheet: View {
                 fprjData: project.exportData(),
                 metadataData: metadata,
                 previewData: previewData,
+                binData: binData,
                 config: config,
                 token: token
             )

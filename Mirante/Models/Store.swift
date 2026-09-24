@@ -14,12 +14,17 @@ struct StoreConfig: Codable, Hashable {
     static let defaultRepository = "mirante-store"
     static let defaultBranch = "main"
 
+    /// The app's only store. No setup — this is what every screen uses.
+    static let standard = StoreConfig(
+        owner: "ipetinate",
+        repository: defaultRepository,
+        branch: defaultBranch,
+        publisherHandle: "ipetinate",
+        publisherName: "ipetinate"
+    )
+
     var isConfigured: Bool {
         !owner.isEmpty && !repository.isEmpty && !branch.isEmpty && !publisherHandle.isEmpty
-    }
-
-    static var empty: StoreConfig {
-        StoreConfig(owner: "", repository: defaultRepository, branch: defaultBranch, publisherHandle: "", publisherName: "")
     }
 }
 

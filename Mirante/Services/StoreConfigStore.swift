@@ -1,35 +1,26 @@
 import Foundation
 
-/// Persists the store configuration. The non-secret fields (owner, repo,
-/// branch, publisher identity) live in UserDefaults; the GitHub token is kept
-/// in the Keychain via `AuthKeyStore`'s generic-password plumbing, so it never
-/// sits in plaintext caches or backups.
+/// Holds the app's single store configuration. There is no on-device setup:
+/// the store is always `ipetinate/mirante-store`. The GitHub token is kept in
+/// the Keychain via `AuthKeyStore`'s generic-password plumbing, with a
+/// gitignored `LocalStoreToken` bootstrap used only when a Keychain token
+/// hasn't been written yet — so the store works (browse + publish) out of the
+/// box using the account that generated the token.
 enum StoreConfigStore {
-    private static let key = "store.config.v1"
-
+    /// The one and only store the app talks to.
     static var config: StoreConfig {
-        get {
-            guard let data = UserDefaults.standard.data(forKey: key),
-                  let decoded = try? JSONDecoder().decode(StoreConfig.self, from: data) else {
-                return .empty
-            }
-            return decoded
-        }
-        set {
-            if let encoded = try? JSONEncoder().encode(newValue) {
-                UserDefaults.standard.set(encoded, forKey: key)
-            }
-        }
+        .standard
     }
 
-    /// The GitHub token, handled by the same Keychain code path as the band
-    /// auth key but under its own account name.
+    /// The GitHub token: explicit Keychain entry wins, otherwise the local
+    /// dev bootstrap (which can later be promoted to the Keychain).
     private static var tokenStore: AuthKeyStore {
         AuthKeyStore(service: "com.ipetinate.Mirante", account: "github-token")
     }
 
     static var token: String? {
-        tokenStore.key
+        if let keychain = tokenStore.key, !keychain.isEmpty { return keychain }
+        return LocalStoreToken.value
     }
 
     @discardableResult
@@ -42,8 +33,8 @@ enum StoreConfigStore {
         tokenStore.clear()
     }
 
-    /// Is the current configuration sufficient to talk to a store?
+    /// The store is always configured; no gates anywhere.
     static var isConfigured: Bool {
-        config.isConfigured
+        true
     }
 }

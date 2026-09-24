@@ -16,3 +16,6 @@ xcuserdata/
 # Store scaffold lives in ipetinate/mirante-store
 .github/
 index.json
+
+# Local dev secrets (gh CLI token bootstrap) — never committed
+Mirante/Resources/LocalStoreToken.swift

@@ -13,7 +13,6 @@ struct ExploreView: View {
     @State private var selectedStoreFace: StoreFace?
     @State private var storeManifest: StoreManifest?
     @State private var storeError: String?
-    @State private var showStoreConfig = false
 
     /// Newest first: the recents list is kept that way by RecentsStore.
     private var faces: [RecentProject] { editor.recents }
@@ -98,9 +97,6 @@ struct ExploreView: View {
             .onAppear {
                 editor.refreshRecents()
                 loadStore()
-            }
-            .sheet(isPresented: $showStoreConfig) {
-                StoreConfigSheet()
             }
         }
     }
@@ -234,7 +230,7 @@ struct ExploreView: View {
                 .font(.headline)
             if editor.compiledFaces.isEmpty {
                 HStack(spacing: 10) {
-                    Text("Compiled binaries (.bin / .face) from the Mi companion app or the Windows toolchain can be installed directly on your band. Import one to install it.")
+                    Text("Compiled binaries (.bin / .face) are built right inside Mirante — from the Export sheet, or when you publish a face. Import a .bin/.face from elsewhere to install it.")
                         .font(.callout)
                         .foregroundStyle(.secondary)
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -305,35 +301,15 @@ struct ExploreView: View {
                 Text("Store")
                     .font(.headline)
                 Spacer()
-                if StoreConfigStore.isConfigured {
-                    Button {
-                        loadStore()
-                    } label: {
-                        Label("Refresh", systemImage: "arrow.clockwise")
-                    }
-                    .buttonStyle(.borderless)
-                } else {
-                    Button("Configure Store…") { showStoreConfig = true }
-                        .buttonStyle(.bordered)
+                Button {
+                    loadStore()
+                } label: {
+                    Label("Refresh", systemImage: "arrow.clockwise")
                 }
+                .buttonStyle(.borderless)
             }
 
-            if !StoreConfigStore.isConfigured {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("A curated store of watchfaces hosted on GitHub — publish your own or install faces others have prepared.")
-                        .font(.callout)
-                        .foregroundStyle(.secondary)
-                    Text("Point the store at your GitHub repository to browse and publish.")
-                        .font(.footnote)
-                        .foregroundStyle(.tertiary)
-                }
-                .padding(16)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background {
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .fill(.quaternary.opacity(0.25))
-                }
-            } else if let storeError {
+            if let storeError {
                 VStack(alignment: .leading, spacing: 6) {
                     Label("Store unavailable", systemImage: "exclamationmark.triangle")
                         .font(.callout.weight(.medium))
@@ -444,7 +420,6 @@ struct FaceDetailView: View {
     let recent: RecentProject
 
     @State private var showPublishSheet = false
-    @State private var showConfigSheet = false
 
     private var project: WatchFaceProject? {
         RecentsStore.content(of: recent)
@@ -487,17 +462,10 @@ struct FaceDetailView: View {
 
                     VStack(spacing: 10) {
                         Button {
-                            if storeConfig.isConfigured {
-                                showPublishSheet = true
-                            } else {
-                                showConfigSheet = true
-                            }
+                            showPublishSheet = true
                         } label: {
-                            Label(
-                                storeConfig.isConfigured ? "Publish to Store" : "Set Up Store…",
-                                systemImage: "arrow.up.circle"
-                            )
-                            .frame(maxWidth: .infinity)
+                            Label("Publish to Store", systemImage: "arrow.up.circle")
+                                .frame(maxWidth: .infinity)
                         }
                         .buttonStyle(.borderedProminent)
                         .controlSize(.large)
@@ -535,39 +503,27 @@ struct FaceDetailView: View {
         .sheet(isPresented: $showPublishSheet) {
             PublishSheet()
         }
-        .sheet(isPresented: $showConfigSheet) {
-            StoreConfigSheet()
-        }
     }
 
     /// The publisher-details menu: who owns the store entry (the configured
-    /// publisher), where it lives, and direct access to publish / configure.
+    /// publisher), where it lives, and direct access to publish.
     private var publisherMenu: some View {
         Menu {
-            if storeConfig.isConfigured {
-                Section {
-                    Label(
-                        storeConfig.publisherName.isEmpty
-                            ? storeConfig.publisherHandle
-                            : storeConfig.publisherName,
-                        systemImage: "person.crop.circle"
-                    )
-                    Text("@\(storeConfig.publisherHandle)")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-                Button("Publish to Store") { showPublishSheet = true }
-                if let repoURL = repoURL {
-                    Button("Open Store Repository") { openURL(repoURL) }
-                }
-            } else {
-                Section {
-                    Text("Not published yet")
-                }
-                Button("Set Up Store…") { showConfigSheet = true }
+            Section {
+                Label(
+                    storeConfig.publisherName.isEmpty
+                        ? storeConfig.publisherHandle
+                        : storeConfig.publisherName,
+                    systemImage: "person.crop.circle"
+                )
+                Text("@\(storeConfig.publisherHandle)")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
-            Divider()
-            Button("Store Settings…") { showConfigSheet = true }
+            Button("Publish to Store") { showPublishSheet = true }
+            if let repoURL = repoURL {
+                Button("Open Store Repository") { openURL(repoURL) }
+            }
         } label: {
             Label("Publisher", systemImage: "person.crop.circle.badge")
         }
