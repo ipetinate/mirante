@@ -1,4 +1,0 @@
-Target dependency graph (2 targets)
-Target 'MiranteTests' in project 'Mirante'
-➜ Explicit dependency on target 'Mirante' in project 'Mirante'
-Target 'Mirante' in project 'Mirante' (no dependencies)

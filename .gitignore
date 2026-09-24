@@ -1,0 +1,18 @@
+# Xcode
+build/
+build-*/
+DerivedData/
+*.xcuserdatad/
+xcuserdata/
+*.xcuserstate
+
+# Swift package manager
+.build/
+.swiftpm/
+
+# macOS
+.DS_Store
+
+# Store scaffold lives in ipetinate/mirante-store
+.github/
+index.json
