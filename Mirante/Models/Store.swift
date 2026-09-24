@@ -11,7 +11,7 @@ struct StoreConfig: Codable, Hashable {
     var publisherHandle: String
     var publisherName: String
 
-    static let defaultRepository = "MiranteStore"
+    static let defaultRepository = "mirante-store"
     static let defaultBranch = "main"
 
     var isConfigured: Bool {
