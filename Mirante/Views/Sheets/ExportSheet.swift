@@ -55,6 +55,12 @@ struct ExportSheet: View {
                             Label("Install to Band", systemImage: "antenna.radiowaves.left.and.right")
                         }
                         .disabled(transport.isConnected ? transport.authKey == nil : false)
+                        Button {
+                            compile()
+                        } label: {
+                            Label("Rebuild .bin", systemImage: "arrow.clockwise")
+                        }
+                        .disabled(didCompile)
                     } else if didCompile {
                         HStack(spacing: 8) {
                             ProgressView()
@@ -72,7 +78,7 @@ struct ExportSheet: View {
                             .font(.footnote)
                             .foregroundStyle(.red)
                     } else {
-                        Text("Builds the installable .bin in-app (magic header + face id), ready to send to a paired band or share.")
+                        Text("Tap Build Compiled .bin after your edits, then share it or install it on a paired band.")
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                     }
@@ -103,11 +109,10 @@ struct ExportSheet: View {
             .onAppear {
                 if exportName.isEmpty { exportName = editor.project.name }
                 prepareExport()
-                compile()
             }
-            .onChange(of: exportName) { _, _ in prepareExport(); compile() }
-            .onChange(of: includeAOD) { _, _ in prepareExport(); compile() }
-            .onChange(of: editor.project) { _, _ in prepareExport(); compile() }
+            .onChange(of: exportName) { _, _ in prepareExport() }
+            .onChange(of: includeAOD) { _, _ in prepareExport() }
+            .onChange(of: editor.project) { _, _ in prepareExport() }
             .alert("Compile Failed", isPresented: Binding(
                 get: { compileError != nil },
                 set: { if !$0 { compileError = nil } }

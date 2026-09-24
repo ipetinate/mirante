@@ -158,5 +158,45 @@ final class EditorStateTests: XCTestCase {
         XCTAssertNil(editor.imageImportRequest)
         editor.requestImageImport(kind: .imageList)
         XCTAssertEqual(editor.imageImportRequest?.kind, .imageList)
+        XCTAssertEqual(editor.imageImportRequest?.source, .files, "plain request must default to the Files picker")
+    }
+
+    func testRequestImageForExistingWidgetSetsRequest() {
+        XCTAssertNil(editor.imageImportRequest)
+        let id = UUID()
+        editor.requestImage(for: .setFilename(widgetID: id, keyPath: \.bitmap), source: .cameraRoll)
+        XCTAssertEqual(editor.imageImportRequest?.source, .cameraRoll)
+        XCTAssertEqual(editor.imageImportRequest?.kind, .image)
+    }
+
+    func testRequestBasedImportSetsFilenameOnExistingWidget() throws {
+        editor.addWidget(kind: .image)
+        let id = try XCTUnwrap(editor.selectedWidget?.id)
+        let data = try Data(contentsOf: imageURL)
+        editor.requestImage(for: .setFilename(widgetID: id, keyPath: \.bitmap), source: .files)
+        let request = try XCTUnwrap(editor.imageImportRequest)
+
+        let result = editor.importImage(data: data, fileName: "roll-abc.png", request: request)
+
+        XCTAssertEqual(result, id)
+        let widget = try XCTUnwrap(editor.activeWidgets.first { $0.id == id })
+        XCTAssertEqual(widget.bitmap, "roll-abc.png")
+        XCTAssertNotNil(editor.runtimeImages[id], "live preview data must be registered")
+
+        XCTAssertNotNil(editor.imageImportRequest, "import must not clear the picker request (the picker owns it)")
+    }
+
+    func testRequestBasedImportAppendsImageListItem() throws {
+        editor.addWidget(kind: .imageList)
+        let id = try XCTUnwrap(editor.selectedWidget?.id)
+        let data = try Data(contentsOf: imageURL)
+        editor.requestImage(for: .appendListItem(widgetID: id), source: .cameraRoll)
+        let request = try XCTUnwrap(editor.imageImportRequest)
+
+        let result = editor.importImage(data: data, fileName: "roll-xyz.png", request: request)
+
+        XCTAssertEqual(result, id)
+        let widget = try XCTUnwrap(editor.activeWidgets.first { $0.id == id })
+        XCTAssertEqual(widget.bitmapList, ["roll-xyz.png"])
     }
 }

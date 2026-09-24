@@ -225,11 +225,11 @@ struct InspectorForm: View {
             ForEach(widget.bitmapList.indices, id: \.self) { index in
                 imageListRow(index)
             }
-            Button {
-                editor.update({ $0.bitmapList.append("") }, label: "Add image")
-            } label: {
-                Label("Add Image", systemImage: "plus")
-            }
+            ImageSourceMenu(
+                destination: .appendListItem(widgetID: widget.id),
+                label: "Add Image",
+                systemImage: "plus"
+            )
             sourcePickerRow(
                 "Index Source",
                 helpTitle: "Index Source",
@@ -264,12 +264,11 @@ struct InspectorForm: View {
             HStack(spacing: 8) {
                 TextField(label, text: listRowBinding(index), prompt: Text("image.png"))
                     .textFieldStyle(.roundedBorder)
-                ImageFileButton(widgetID: widget.id) { url in
-                    editor.update({ w in
-                        guard w.bitmapList.indices.contains(index) else { return }
-                        w.bitmapList[index] = url.lastPathComponent
-                    }, label: "Bitmap list")
-                }
+                ImageSourceMenu(
+                    destination: .setListItem(widgetID: widget.id, index: index),
+                    label: "Choose…",
+                    systemImage: "photo"
+                )
                 Button(role: .destructive) {
                     editor.update({ w in
                         guard w.bitmapList.indices.contains(index) else { return }
@@ -657,9 +656,11 @@ struct InspectorForm: View {
             HStack(spacing: 8) {
                 TextField(label, text: binding(keyPath, label: label), prompt: Text(prompt))
                     .textFieldStyle(.roundedBorder)
-                ImageFileButton(widgetID: widget.id) { url in
-                    editor.update({ $0[keyPath: keyPath] = url.lastPathComponent }, label: label)
-                }
+                ImageSourceMenu(
+                    destination: .setFilename(widgetID: widget.id, keyPath: keyPath),
+                    label: "Choose…",
+                    systemImage: "photo"
+                )
                 FieldHelp(title: helpTitle, detail: helpText)
             }
         }

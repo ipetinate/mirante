@@ -94,14 +94,18 @@ struct LayersSidebarView: View {
             Spacer()
             Menu {
                 ForEach(WidgetKind.allCases.filter { $0.isAddable(for: editor.project.format) }) { kind in
-                    Button {
-                        if kind == .image || kind == .imageList {
-                            editor.requestImageImport(kind: kind)
-                        } else {
+                    if kind == .image || kind == .imageList {
+                        ImageSourceMenu(
+                            destination: .newWidget(kind),
+                            label: kind.displayName,
+                            systemImage: kind.systemImage
+                        )
+                    } else {
+                        Button {
                             editor.addWidget(kind: kind)
+                        } label: {
+                            Label(kind.displayName, systemImage: kind.systemImage)
                         }
-                    } label: {
-                        Label(kind.displayName, systemImage: kind.systemImage)
                     }
                 }
             } label: {

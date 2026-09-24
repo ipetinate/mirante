@@ -200,20 +200,94 @@ final class EditorState {
 
     /// Asks for an image to be imported, then added as a widget.
     func requestImageImport(kind: WidgetKind) {
-        imageImportRequest = ImageImportRequest(kind: kind)
+        requestImage(for: .newWidget(kind), source: .files)
+    }
+
+    /// Asks for an image to be imported from a specific source. The picker is
+    /// presented by the root `ContentView` — never from inside a sheet — so the
+    /// iOS document picker cannot get stuck after a cancel.
+    func requestImage(for destination: ImageImportRequest.Destination, source: ImageImportRequest.Source) {
+        let kind: WidgetKind
+        switch destination {
+        case .newWidget(let newKind): kind = newKind
+        case .setFilename, .setListItem, .appendListItem: kind = .image
+        }
+        imageImportRequest = ImageImportRequest(kind: kind, source: source, destination: destination)
     }
 
     /// Adds an image widget from a user-picked file, sized to the full screen
     /// width (aspect preserved) and centered. Returns the new widget id.
     @discardableResult
     func importImage(at url: URL, kind: WidgetKind) -> UUID? {
+        importImage(at: url, request: ImageImportRequest(kind: kind, source: .files, destination: .newWidget(kind)))
+    }
+
+    /// Handles a file picked by the root Files importer for a pending request.
+    @discardableResult
+    func importImage(at url: URL, request: ImageImportRequest) -> UUID? {
         guard let loaded = try? Data(contentsOf: url) else { return nil }
         // Bake any EXIF orientation into the pixels so the canvas, live preview
         // and export all render the image the way the camera saved it.
         let data = ImageTransform.normalized(loaded) ?? loaded
+        return completeImageImport(data: data, fileName: url.lastPathComponent, request: request)
+    }
 
+    /// Handles image data picked from the camera roll for a pending request.
+    @discardableResult
+    func importImage(data: Data, fileName: String, request: ImageImportRequest) -> UUID? {
+        let normalized = ImageTransform.normalized(data) ?? data
+        return completeImageImport(data: normalized, fileName: fileName, request: request)
+    }
+
+    @discardableResult
+    private func completeImageImport(data: Data, fileName: String, request: ImageImportRequest) -> UUID? {
+        switch request.destination {
+        case .newWidget(let kind):
+            return addImageWidget(data: data, fileName: fileName, kind: kind)
+
+        case .setFilename(let widgetID, let keyPath):
+            guard let idx = activeWidgets.firstIndex(where: { $0.id == widgetID }) else { return nil }
+            var before = activeWidgets[idx]
+            var after = before
+            after[keyPath: keyPath] = fileName
+            guard before != after else { return widgetID }
+            setImage(data, for: widgetID)
+            recordModify(label: "Choose Image", before: before, after: after)
+            return widgetID
+
+        case .setListItem(let widgetID, let index):
+            guard let idx = activeWidgets.firstIndex(where: { $0.id == widgetID }) else { return nil }
+            var before = activeWidgets[idx]
+            guard before.bitmapList.indices.contains(index) else { return nil }
+            var after = before
+            after.bitmapList[index] = fileName
+            guard before != after else { return widgetID }
+            setImage(data, for: widgetID)
+            recordModify(label: "Bitmap list", before: before, after: after)
+            return widgetID
+
+        case .appendListItem(let widgetID):
+            guard let idx = activeWidgets.firstIndex(where: { $0.id == widgetID }) else { return nil }
+            var before = activeWidgets[idx]
+            var after = before
+            if let empty = after.bitmapList.firstIndex(where: { $0.isEmpty }) {
+                after.bitmapList[empty] = fileName
+            } else {
+                after.bitmapList.append(fileName)
+            }
+            guard before != after else { return widgetID }
+            setImage(data, for: widgetID)
+            recordModify(label: "Add image", before: before, after: after)
+            return widgetID
+        }
+    }
+
+    /// Creates a widget from image data, sized to the full screen width
+    /// (aspect preserved) and centered. Returns the new widget id.
+    @discardableResult
+    private func addImageWidget(data: Data, fileName: String, kind: WidgetKind) -> UUID? {
         let screen = project.screenSize
-        var widget = WidgetItem(kind: kind, name: url.deletingPathExtension().lastPathComponent)
+        var widget = WidgetItem(kind: kind, name: (fileName as NSString).deletingPathExtension)
         if let size = imagePixelSize(data), size.width > 0, size.height > 0 {
             // Fit within the screen, preserving aspect: never overflow any edge.
             let s = min(
@@ -228,9 +302,9 @@ final class EditorState {
         }
         widget.x = max(0, (Int(screen.width) - widget.width) / 2)
         widget.y = max(0, (Int(screen.height) - widget.height) / 2)
-        widget.bitmap = url.lastPathComponent
+        widget.bitmap = fileName
         if kind == .imageList {
-            widget.bitmapList = [url.lastPathComponent]
+            widget.bitmapList = [fileName]
         }
         uniquifyName(&widget)
         execute(AddWidgetCommand(widget: widget, index: activeWidgets.count))
@@ -507,5 +581,39 @@ final class EditorState {
 }
 
 struct ImageImportRequest {
+    /// Identity used to trigger presentation; every request is a fresh id so
+    /// the root picker can re-present after each cancel.
+    let id = UUID()
     let kind: WidgetKind
+    let source: Source
+    let destination: Destination
+
+    enum Source {
+        case cameraRoll
+        case files
+    }
+
+    enum Destination {
+        /// Create a new widget of the given kind from the picked image.
+        case newWidget(WidgetKind)
+        /// Record the picked image's filename on an existing widget field.
+        case setFilename(widgetID: UUID, keyPath: WritableKeyPath<WidgetItem, String>)
+        /// Replace one entry in an existing widget's image list.
+        case setListItem(widgetID: UUID, index: Int)
+        /// Add a fresh entry to an existing widget's image list.
+        case appendListItem(widgetID: UUID)
+    }
+
+    /// Best-effort extension from the image bytes, used to name camera-roll
+    /// pickups before they are baked into the project.
+    static func imageFileExtension(for data: Data) -> String {
+        let png: [UInt8] = [0x89, 0x50, 0x4E, 0x47]
+        let gif: [UInt8] = [0x47, 0x49, 0x46]
+        let bmp: [UInt8] = [0x42, 0x4D]
+        let head = Array(data.prefix(4))
+        if head.starts(with: png) { return "png" }
+        if head.starts(with: gif) { return "gif" }
+        if head.starts(with: bmp) { return "bmp" }
+        return "jpg"
+    }
 }

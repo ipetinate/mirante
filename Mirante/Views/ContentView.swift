@@ -1,11 +1,19 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
+#if os(iOS)
+import PhotosUI
+#endif
+
 struct ContentView: View {
     @Environment(EditorState.self) private var editor
     @Environment(BandTransport.self) private var bandTransport
     @State private var columnVisibility = NavigationSplitViewVisibility.all
     @State private var showImagePicker = false
+    #if os(iOS)
+    @State private var showCameraRollPicker = false
+    @State private var cameraRollItem: PhotosPickerItem?
+    #endif
 
     var body: some View {
         @Bindable var editor = editor
@@ -73,11 +81,11 @@ struct ContentView: View {
             allowedContentTypes: [.image],
             allowsMultipleSelection: false
         ) { result in
-            guard let kind = editor.imageImportRequest?.kind else { return }
+            guard let request = editor.imageImportRequest else { return }
             defer { editor.imageImportRequest = nil }
             guard case .success(let urls) = result, let url = urls.first else { return }
             let accessing = url.startAccessingSecurityScopedResource()
-            editor.importImage(at: url, kind: kind)
+            editor.importImage(at: url, request: request)
             if accessing { url.stopAccessingSecurityScopedResource() }
         }
         .fileImporter(
@@ -96,10 +104,33 @@ struct ContentView: View {
             guard case .success(let urls) = result, let url = urls.first else { return }
             editor.importCompiledFace(at: url)
         }
-        .onChange(of: editor.imageImportRequest?.kind) { _, kind in
-            guard kind != nil else { return }
-            showImagePicker = true
+        .onChange(of: editor.imageImportRequest?.id) { _, id in
+            guard id != nil else { return }
+            #if os(iOS)
+            if editor.imageImportRequest?.source == .cameraRoll {
+                cameraRollItem = nil
+                showCameraRollPicker = true
+            } else {
+                presentFilesImporter()
+            }
+            #else
+            presentFilesImporter()
+            #endif
         }
+        #if os(iOS)
+        .photosPicker(isPresented: $showCameraRollPicker, selection: $cameraRollItem, matching: .images)
+        .onChange(of: cameraRollItem) { _, item in
+            guard let item else { return }
+            guard let request = editor.imageImportRequest, request.source == .cameraRoll else { return }
+            Task {
+                guard let data = try? await item.loadTransferable(type: Data.self),
+                      !data.isEmpty else { return }
+                let fileName = "roll-\(UUID().uuidString.prefix(6)).\(ImageImportRequest.imageFileExtension(for: data))"
+                editor.importImage(data: data, fileName: fileName, request: request)
+                editor.imageImportRequest = nil
+            }
+        }
+        #endif
         .onChange(of: editor.project) { _, _ in
             editor.scheduleAutosave()
         }
@@ -117,6 +148,17 @@ struct ContentView: View {
     /// UTI for the compiled watchface binaries Mirante can receive.
     private var compiledFaceTypes: [UTType] {
         [UTType(filenameExtension: "bin") ?? .data, UTType(filenameExtension: "face") ?? .data]
+    }
+
+    /// Presents the Files importer after bouncing the flag through the next
+    /// runloop. SwiftUI's document picker can silently refuse to re-present
+    /// when dismissed during the same frame that triggered the previous
+    /// presentation, so resetting false→true off-cycle keeps it openable.
+    private func presentFilesImporter() {
+        showImagePicker = false
+        DispatchQueue.main.async {
+            showImagePicker = true
+        }
     }
 }
 
@@ -388,14 +430,18 @@ struct WidgetLayerCarousel: View {
     private var addCard: some View {
         Menu {
             ForEach(WidgetKind.allCases.filter { $0.isAddable(for: editor.project.format) }) { kind in
-                Button {
-                    if kind == .image || kind == .imageList {
-                        editor.requestImageImport(kind: kind)
-                    } else {
+                if kind == .image || kind == .imageList {
+                    ImageSourceMenu(
+                        destination: .newWidget(kind),
+                        label: kind.displayName,
+                        systemImage: kind.systemImage
+                    )
+                } else {
+                    Button {
                         editor.addWidget(kind: kind)
+                    } label: {
+                        Label(kind.displayName, systemImage: kind.systemImage)
                     }
-                } label: {
-                    Label(kind.displayName, systemImage: kind.systemImage)
                 }
             }
         } label: {
