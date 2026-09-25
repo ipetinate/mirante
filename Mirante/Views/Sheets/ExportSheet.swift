@@ -10,6 +10,7 @@ struct ExportSheet: View {
     @State private var exportURL: URL?
     @State private var binURL: URL?
     @State private var compileError: String?
+    @State private var compileWarnings: [String] = []
     @State private var didCompile = false
 
     var body: some View {
@@ -77,6 +78,15 @@ struct ExportSheet: View {
                         Text(compileError)
                             .font(.footnote)
                             .foregroundStyle(.red)
+                    } else if !compileWarnings.isEmpty {
+                        ForEach(compileWarnings, id: \.self) { warning in
+                            Text(warning)
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                        }
+                        Text("Widgets above were skipped in the compiled .bin. Their images and metadata live on in the exported .fprj.")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
                     } else {
                         Text("Tap Build Compiled .bin after your edits, then share it or install it on a paired band.")
                             .font(.footnote)
@@ -132,14 +142,27 @@ struct ExportSheet: View {
 
     private func compile() {
         compileError = nil
+        compileWarnings = []
         didCompile = true
         binURL = nil
         Task { @MainActor in
-            // Defer the actual work off the main actor a beat so the
-            // progress indicator renders on large projects.
-            let data = (try? FaceBinCompiler.compile(previewProject)) ?? Data()
+            let result: O66CompiledFace
+            do {
+                result = try FaceBinCompiler.compile(previewProject, editor: editor)
+            } catch let error as O66CompilerError {
+                compileError = error.errorDescription
+                didCompile = false
+                return
+            } catch {
+                compileError = error.localizedDescription
+                didCompile = false
+                return
+            }
+            compileWarnings = result.warnings
+            // Defer the disk write off the main actor a beat so the progress
+            // indicator renders on large projects.
             try? await Task.sleep(nanoseconds: 30_000_000)
-            guard let binURL = writeTemporary(data, ext: "bin", name: compiledFileName) else {
+            guard let binURL = writeTemporary(result.data, ext: "bin", name: compiledFileName) else {
                 compileError = String(localized: "Could not write the compiled .bin.")
                 return
             }

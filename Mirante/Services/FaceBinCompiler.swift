@@ -1,48 +1,35 @@
 import Foundation
 
 /// Builds a compiled watchface `.bin` from an editable project, entirely
-/// in-app. This removes the dependency on the closed Windows toolchain:
-/// Mirante writes its own header (magic + numeric id) and carries the `.fprj`
-/// source as the payload, so the bundle passes the transport's validation
-/// (`CompiledFaceMagic`, size guard) and `XiaomiProto.watchfaceID` — the same
-/// contract the store's CI-produced binaries follow (Gadgetbridge
-/// `XiaomiFWHelper.parseAsWatchface` layout).
+/// in-app. It now produces a real o66 package (the format the Xiaomi Smart
+/// Band 10 Pro expects) with a compressed preview image, definitions and
+/// resources — wrapped in the same header contract (`CompiledFaceMagic`, size
+/// guard, `XiaomiProto.watchfaceID`) the transport and proto already rely on.
 enum FaceBinCompiler {
-    /// Number of leading header bytes the band's parser expects before the
-    /// payload starts: 4-byte magic at 0x00, numeric ASCII id at 0x28.
-    static let headerSize = 0x40
-
-    /// Compiles `project` into a `.bin` bundle.
-    static func compile(_ project: WatchFaceProject) throws -> Data {
-        try compile(name: project.name, deviceID: project.deviceID, payload: project.exportData())
+    /// Pure compile with a placeholder preview; used by tests and callers that
+    /// cannot render one. The file is always structurally valid.
+    static func compile(_ project: WatchFaceProject) throws -> O66CompiledFace {
+        try O66Compiler.compile(project: project, previewPNG: nil)
     }
 
-    /// Compiles arbitrary face payload bytes (e.g. an exported `.fprj`) into a
-    /// `.bin` bundle with a stable numeric id derived from name + device.
-    static func compile(name: String, deviceID: String, payload: Data) throws -> Data {
-        var data = Data(count: headerSize)
-        // Magic at 0x00.
-        data[0] = CompiledFaceMagic.bytes[0]
-        data[1] = CompiledFaceMagic.bytes[1]
-        data[2] = CompiledFaceMagic.bytes[2]
-        data[3] = CompiledFaceMagic.bytes[3]
-        // Numeric id as a NUL-terminated ASCII string at 0x28. The band keys
-        // the face by this; derive something stable so re-compiles match.
-        let id = numericID(name: name, deviceID: deviceID)
-        let idBytes = Array(id.utf8)
-        data.replaceSubrange(0x28..<(0x28 + idBytes.count), with: idBytes)
-        data.append(payload)
-        return data
+    /// Compiles with a caller-provided preview PNG (device-sized) baked into
+    /// the package's preview block.
+    static func compile(_ project: WatchFaceProject, previewPNG: Data?) throws -> O66CompiledFace {
+        try O66Compiler.compile(project: project, previewPNG: previewPNG)
     }
 
-    /// A stable, collision-likely-low decimal id (FNV-1a, 32-bit) so the same
-    /// project always compiles to the same face id without a PRNG.
+    /// Convenience used by the export/publish sheets: renders the live preview
+    /// on the main actor, then compiles with that preview embedded.
+    @MainActor
+    static func compile(_ project: WatchFaceProject, editor: EditorState) throws -> O66CompiledFace {
+        let preview = PreviewRenderer.renderPNG(project, editor: editor)
+        return try compile(project, previewPNG: preview)
+    }
+
+    /// A stable, collision-likely-low 9-digit face id (FNV-1a, 32-bit, mod
+    /// 10⁹) so the same project always compiles to the same face id without a
+    /// PRNG — matched by `O66Compiler.numericID`.
     static func numericID(name: String, deviceID: String) -> String {
-        var hash: UInt32 = 0x811C9DC5
-        for byte in "\(name)/\(deviceID)".utf8 {
-            hash ^= UInt32(byte)
-            hash &*= 0x01000193
-        }
-        return String(hash)
+        O66Compiler.numericID(from: name, deviceID: deviceID)
     }
 }

@@ -109,25 +109,30 @@ struct PublishSheet: View {
         let config = StoreConfigStore.config
         let tagList = tags.split(separator: ",").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
 
+        guard let previewData = PreviewRenderer.renderPNG(project, editor: editor) else {
+            errorMessage = String(localized: "Could not render the face preview.")
+            return
+        }
+
         let binData: Data
         do {
-            binData = try FaceBinCompiler.compile(project)
+            binData = try FaceBinCompiler.compile(project, previewPNG: previewData).data
         } catch {
             errorMessage = String(localized: "Could not compile the .bin for this face.")
             return
         }
         let face = StoreFace.make(from: project, config: config, version: version.isEmpty ? "1.0.0" : version, description: description, tags: tagList, binData: binData)
 
+        guard let previewData = PreviewRenderer.renderPNG(project, editor: editor) else {
+            errorMessage = String(localized: "Could not render the face preview.")
+            return
+        }
+
         let metadata: Data
         do {
             metadata = try StoreJSON.encoder.encode(face)
         } catch {
             errorMessage = error.localizedDescription
-            return
-        }
-
-        guard let previewData = PreviewRenderer.renderPNG(project, editor: editor) else {
-            errorMessage = String(localized: "Could not render the face preview.")
             return
         }
 
