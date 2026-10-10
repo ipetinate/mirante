@@ -7,6 +7,9 @@ import SwiftUI
 final class EditorState {
     var project: WatchFaceProject
     var selection: UUID?
+    /// Locked widgets remain selectable but ignore canvas move/resize gestures.
+    /// Kept in editor state so older project files remain fully compatible.
+    var lockedWidgetIDs: Set<UUID> = []
     var isAODActive = false
     var zoom: CGFloat = 1
     var showGrid = false
@@ -38,6 +41,8 @@ final class EditorState {
     var imageImportRequest: ImageImportRequest?
     /// In-memory image data per widget id, only to render real previews.
     var runtimeImages: [UUID: Data] = [:]
+    /// True after a mutation and cleared after a successful autosave.
+    var hasUnsavedChanges = false
 
     private let history = History()
     private var autosaveTask: Task<Void, Never>?
@@ -48,6 +53,7 @@ final class EditorState {
 
     init(project: WatchFaceProject = .new(name: "Untitled", device: Device.all[0])) {
         self.project = project
+        self.lockedWidgetIDs = project.lockedWidgetIDs
     }
 
     // MARK: - Widgets
@@ -57,6 +63,7 @@ final class EditorState {
         set {
             if isAODActive { project.aodWidgets = newValue } else { project.widgets = newValue }
             project.touch()
+            hasUnsavedChanges = true
         }
     }
 
@@ -67,6 +74,20 @@ final class EditorState {
     var selectedWidget: WidgetItem? {
         guard let selection else { return nil }
         return activeWidgets.first { $0.id == selection }
+    }
+
+    func isLocked(_ id: UUID) -> Bool { lockedWidgetIDs.contains(id) }
+
+    func toggleLock(for id: UUID) {
+        if lockedWidgetIDs.contains(id) {
+            lockedWidgetIDs.remove(id)
+        } else {
+            lockedWidgetIDs.insert(id)
+        }
+        project.lockedWidgetIDs = lockedWidgetIDs
+        project.touch()
+        hasUnsavedChanges = true
+        scheduleAutosave()
     }
 
     // MARK: - Commands
@@ -154,7 +175,7 @@ final class EditorState {
         guard let idx = activeWidgets.firstIndex(where: { $0.id == id }) else { return }
         let trimmed = newName.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
-        var before = activeWidgets[idx]
+        let before = activeWidgets[idx]
         var after = before
         after.name = trimmed
         guard after.name != before.name else { return }
@@ -228,14 +249,16 @@ final class EditorState {
         guard let loaded = try? Data(contentsOf: url) else { return nil }
         // Bake any EXIF orientation into the pixels so the canvas, live preview
         // and export all render the image the way the camera saved it.
-        let data = ImageTransform.normalized(loaded) ?? loaded
+        let data = ImageTransform.optimized(loaded, maxPixelSize: max(project.device.width, project.device.height))
+            ?? ImageTransform.normalized(loaded) ?? loaded
         return completeImageImport(data: data, fileName: url.lastPathComponent, request: request)
     }
 
     /// Handles image data picked from the camera roll for a pending request.
     @discardableResult
     func importImage(data: Data, fileName: String, request: ImageImportRequest) -> UUID? {
-        let normalized = ImageTransform.normalized(data) ?? data
+        let normalized = ImageTransform.optimized(data, maxPixelSize: max(project.device.width, project.device.height))
+            ?? ImageTransform.normalized(data) ?? data
         return completeImageImport(data: normalized, fileName: fileName, request: request)
     }
 
@@ -247,28 +270,32 @@ final class EditorState {
 
         case .setFilename(let widgetID, let keyPath):
             guard let idx = activeWidgets.firstIndex(where: { $0.id == widgetID }) else { return nil }
-            var before = activeWidgets[idx]
+            let before = activeWidgets[idx]
             var after = before
             after[keyPath: keyPath] = fileName
             guard before != after else { return widgetID }
             setImage(data, for: widgetID)
+            // Analog widgets reference independent named assets. Keep the
+            // legacy UUID copy as a fallback, but also persist the basename so
+            // native and FPRJ exports can resolve the exact hand/dial image.
+            project.images[fileName] = data
             recordModify(label: "Choose Image", before: before, after: after)
             return widgetID
 
         case .setListItem(let widgetID, let index):
             guard let idx = activeWidgets.firstIndex(where: { $0.id == widgetID }) else { return nil }
-            var before = activeWidgets[idx]
+            let before = activeWidgets[idx]
             guard before.bitmapList.indices.contains(index) else { return nil }
             var after = before
             after.bitmapList[index] = fileName
             guard before != after else { return widgetID }
-            setImage(data, for: widgetID)
+            setImage(data, for: widgetID, listIndex: index)
             recordModify(label: "Bitmap list", before: before, after: after)
             return widgetID
 
         case .appendListItem(let widgetID):
             guard let idx = activeWidgets.firstIndex(where: { $0.id == widgetID }) else { return nil }
-            var before = activeWidgets[idx]
+            let before = activeWidgets[idx]
             var after = before
             if let empty = after.bitmapList.firstIndex(where: { $0.isEmpty }) {
                 after.bitmapList[empty] = fileName
@@ -276,7 +303,8 @@ final class EditorState {
                 after.bitmapList.append(fileName)
             }
             guard before != after else { return widgetID }
-            setImage(data, for: widgetID)
+            let frameIndex = after.bitmapList.firstIndex(of: fileName) ?? 0
+            setImage(data, for: widgetID, listIndex: frameIndex)
             recordModify(label: "Add image", before: before, after: after)
             return widgetID
         }
@@ -308,7 +336,11 @@ final class EditorState {
         }
         uniquifyName(&widget)
         execute(AddWidgetCommand(widget: widget, index: activeWidgets.count))
-        setImage(data, for: widget.id)
+        if kind == .imageList {
+            setImage(data, for: widget.id, listIndex: 0)
+        } else {
+            setImage(data, for: widget.id)
+        }
         return widget.id
     }
 
@@ -320,10 +352,42 @@ final class EditorState {
         scheduleAutosave()
     }
 
+    /// Stores a frame without overwriting the other frames of an image-list.
+    func setImage(_ data: Data, for widgetID: UUID, listIndex: Int) {
+        guard listIndex >= 0 else { return }
+        project.images["\(widgetID.uuidString)#\(listIndex)"] = data
+        if listIndex == 0 {
+            runtimeImages[widgetID] = data
+            project.images[widgetID.uuidString] = data
+        }
+        scheduleAutosave()
+    }
+
     /// Resolves rendered image data for a widget: the live override wins, then
     /// the persisted copy stored in the project.
     func imageData(for widgetID: UUID) -> Data? {
         runtimeImages[widgetID] ?? project.images[widgetID.uuidString]
+    }
+
+    /// Applies a crop only when explicitly requested by the image crop tool.
+    func cropSelectedImage(normalizedRect: CGRect) {
+        guard let widget = selectedWidget, widget.kind == .image || widget.kind == .imageList else { return }
+        let key: String
+        let source: Data?
+        if widget.kind == .imageList, let name = widget.bitmapList.first, !name.isEmpty {
+            key = "(widget.id.uuidString)#0"
+            source = project.images[key] ?? project.images[name] ?? imageData(for: widget.id)
+        } else {
+            key = widget.id.uuidString
+            source = imageData(for: widget.id) ?? project.images[widget.bitmap]
+        }
+        guard let source, let cropped = ImageTransform.cropped(source, normalizedRect: normalizedRect) else { return }
+        project.images[key] = cropped
+        if widget.kind == .imageList, let name = widget.bitmapList.first, !name.isEmpty { project.images[name] = cropped }
+        runtimeImages[widget.id] = cropped
+        project.touch()
+        hasUnsavedChanges = true
+        scheduleAutosave()
     }
 
     private func imagePixelSize(_ data: Data) -> CGSize? {
@@ -345,12 +409,48 @@ final class EditorState {
         execute(ReorderWidgetCommand(widgetID: id, from: current, to: target))
     }
 
+    /// Maps a widget to its display row (0 = top of the list = frontmost).
+    func displayRow(of id: UUID) -> Int? {
+        let widgets = activeWidgets
+        guard let idx = widgets.firstIndex(where: { $0.id == id }) else { return nil }
+        return widgets.count - 1 - idx
+    }
+
+    /// Reorders immediately while a drag is in progress, without recording an
+    /// undo step. The whole drag commits as one command on drop.
+    func reorderWidgetLive(_ id: UUID, toDisplayRow displayRow: Int) {
+        let widgets = activeWidgets
+        guard let current = widgets.firstIndex(where: { $0.id == id }) else { return }
+        let target = widgets.count - 1 - displayRow
+        guard target != current, target >= 0, target < widgets.count else { return }
+        var reordered = widgets
+        reordered.remove(at: current)
+        reordered.insert(widgets[current], at: target)
+        replaceActiveWidgets(reordered)
+    }
+
+    /// Records a single undo step for a completed drag that moved `id` from its
+    /// starting display row to wherever it currently sits.
+    func commitWidgetDrag(_ id: UUID, fromStartDisplayRow startDisplayRow: Int) {
+        let widgets = activeWidgets
+        guard let current = widgets.firstIndex(where: { $0.id == id }) else { return }
+        let startRaw = widgets.count - 1 - startDisplayRow
+        guard startRaw != current else { return }
+        execute(ReorderWidgetCommand(widgetID: id, from: startRaw, to: current))
+    }
+
+    /// Reorders a widget by raw array indices — used by the reorder sheet.
+    func reorderWidget(_ id: UUID, fromRaw from: Int, toRaw to: Int) {
+        guard from != to else { return }
+        execute(ReorderWidgetCommand(widgetID: id, from: from, to: to))
+    }
+
     /// Repositions a widget (from a canvas drop) with its top-left at the
     /// given device-pixel point, without clamping: widgets may sit partially
     /// or fully outside the screen, hidden by the preview's overflow clip.
     func repositionWidget(_ id: UUID, toX x: Int, y: Int) {
         guard let idx = activeWidgets.firstIndex(where: { $0.id == id }) else { return }
-        var before = activeWidgets[idx]
+        let before = activeWidgets[idx]
         var after = before
         after.x = x
         after.y = y
@@ -364,7 +464,7 @@ final class EditorState {
     /// is in normalized space (0...1 within the widget).
     func updatePolylinePoint(_ id: UUID, index: Int, to point: CGPoint) {
         guard let idx = activeWidgets.firstIndex(where: { $0.id == id }) else { return }
-        var before = activeWidgets[idx]
+        let before = activeWidgets[idx]
         guard before.kind == .polyline, before.pointList.indices.contains(index) else { return }
         var after = before
         after.pointList[index] = CGPoint(
@@ -379,7 +479,7 @@ final class EditorState {
     /// to `point` (normalized 0...1, e.g. from a tap on the canvas).
     func insertPolylinePoint(_ id: UUID, at point: CGPoint) {
         guard let idx = activeWidgets.firstIndex(where: { $0.id == id }) else { return }
-        var before = activeWidgets[idx]
+        let before = activeWidgets[idx]
         guard before.kind == .polyline, before.pointList.count >= 2 else { return }
         let target = CGPoint(
             x: min(max(point.x, 0), 1),
@@ -417,7 +517,7 @@ final class EditorState {
     func update(_ transform: (inout WidgetItem) -> Void, label: String = "Modify") {
         guard let id = selection,
               let idx = activeWidgets.firstIndex(where: { $0.id == id }) else { return }
-        var before = activeWidgets[idx]
+        let before = activeWidgets[idx]
         var after = before
         transform(&after)
         guard before != after else { return }
@@ -447,12 +547,16 @@ final class EditorState {
 
     // MARK: - Project lifecycle
 
-    func newProject(name: String, device: Device) {
+    func newProject(name: String, device: Device, format: ProjectFormat = .mirante) {
+        persistCurrentProject()
         project = .new(name: name, device: device)
+        lockedWidgetIDs = []
+        project.format = format
         selection = nil
         isAODActive = false
         zoom = 1
         runtimeImages.removeAll()
+        hasUnsavedChanges = true
         homeVisible = false
     }
 
@@ -488,8 +592,10 @@ final class EditorState {
 
     func persistCurrentProject() {
         syncImagesToProject()
+        project.lockedWidgetIDs = lockedWidgetIDs
         guard !project.name.isEmpty else { return }
         let record = RecentsStore.save(project: project, isImported: pendingImport ? true : nil)
+        hasUnsavedChanges = false
         recents.removeAll { $0.id == record.id }
         recents.insert(record, at: 0)
     }
@@ -512,6 +618,7 @@ final class EditorState {
     /// Brings a decoded project into the editor and makes it the most recent.
     func loadProject(_ loaded: WatchFaceProject) {
         project = loaded
+        lockedWidgetIDs = loaded.lockedWidgetIDs
         runtimeImages = Dictionary(
             uniqueKeysWithValues: loaded.images.compactMap { key, value in
                 UUID(uuidString: key).map { ($0, value) }
@@ -533,6 +640,14 @@ final class EditorState {
     func importProject(at url: URL) {
         let accessing = url.startAccessingSecurityScopedResource()
         defer { if accessing { url.stopAccessingSecurityScopedResource() } }
+        if url.pathExtension.lowercased() == "mirante" {
+            guard let data = try? Data(contentsOf: url),
+                  let project = try? MiranteProjectCodec.decode(data) else { return }
+            pendingImport = true
+            defer { pendingImport = false }
+            loadProject(project)
+            return
+        }
         guard let xml = try? String(contentsOf: url, encoding: .utf8),
               let project = FprjParser.parse(xml) else { return }
         pendingImport = true

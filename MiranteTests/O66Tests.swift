@@ -133,18 +133,87 @@ final class O66Tests: XCTestCase {
         try O66Compiler.assertStructuralIntegrity([UInt8](result.data))
     }
 
-    func testUnsupportedKindsAreSkippedWithWarnings() throws {
+    func testArcCompilesAsProgressWidget() throws {
         var project = WatchFaceProject(name: "Skipper", deviceID: "xiaomi_band_10_pro")
         var arc = WidgetItem(kind: .arc, name: "Steps", x: 0, y: 0, width: 100, height: 100)
         arc.valueSourceID = "9"
         project.widgets.append(arc)
-        var number = WidgetItem(kind: .digitalNumber, name: "Steps",
-        x: 0, y: 0, width: 100, height: 40)
-        number.valueSourceID = "19" // unmapped
-        project.widgets.append(number)
 
         let result = try FaceBinCompiler.compile(project)
-        XCTAssertFalse(result.warnings.isEmpty)
+        XCTAssertEqual(result.warnings, [])
+        try O66Compiler.assertStructuralIntegrity([UInt8](result.data))
+    }
+
+    func testImageListCompilesAllFrames() throws {
+        var project = WatchFaceProject(name: "Frames", deviceID: "xiaomi_band_10_pro")
+        var list = WidgetItem(kind: .imageList, name: "Frames", x: 0, y: 0, width: 40, height: 40)
+        list.bitmapList = ["one.png", "two.png"]
+        project.widgets.append(list)
+        project.images["\(list.id.uuidString)#0"] = makePNG(width: 40, height: 40)
+        project.images["\(list.id.uuidString)#1"] = makePNG(width: 40, height: 40)
+
+        let result = try FaceBinCompiler.compile(project)
+        XCTAssertEqual(result.warnings, [])
+        try O66Compiler.assertStructuralIntegrity([UInt8](result.data))
+    }
+
+    func testPolylineCompilesAsRasterElement() throws {
+        var project = WatchFaceProject(name: "Line", deviceID: "xiaomi_band_10_pro")
+        var line = WidgetItem(kind: .polyline, name: "Battery line", x: 0, y: 0, width: 80, height: 40)
+        line.pointList = [CGPoint(x: 0, y: 1), CGPoint(x: 0.5, y: 0), CGPoint(x: 1, y: 1)]
+        line.lineWidth = 4
+        project.widgets.append(line)
+
+        let result = try FaceBinCompiler.compile(project)
+        XCTAssertEqual(result.warnings, [])
+        try O66Compiler.assertStructuralIntegrity([UInt8](result.data))
+    }
+
+    func testPointerCompilesFromConfiguredBitmap() throws {
+        var project = WatchFaceProject(name: "Pointer", deviceID: "xiaomi_band_10_pro")
+        var pointer = WidgetItem(kind: .pointer, name: "Needle", x: 20, y: 20, width: 32, height: 32)
+        pointer.pointerImage = "needle.png"
+        project.widgets.append(pointer)
+        project.images["needle.png"] = makePNG(width: 32, height: 32)
+
+        let result = try FaceBinCompiler.compile(project)
+        XCTAssertEqual(result.warnings, [])
+        try O66Compiler.assertStructuralIntegrity([UInt8](result.data))
+    }
+
+    func testAnalogCompilesNamedAssetsAsStaticComposition() throws {
+        var project = WatchFaceProject(name: "Analog", deviceID: "xiaomi_band_10_pro")
+        var analog = WidgetItem(kind: .analog, name: "Clock", x: 0, y: 0, width: 48, height: 48)
+        analog.background = "dial.png"
+        analog.hourHandImage = "hour.png"
+        analog.minuteHandImage = "minute.png"
+        project.widgets.append(analog)
+        project.images["dial.png"] = makePNG(width: 48, height: 48)
+        project.images["hour.png"] = makePNG(width: 48, height: 48)
+        project.images["minute.png"] = makePNG(width: 48, height: 48)
+
+        let result = try FaceBinCompiler.compile(project)
+        XCTAssertEqual(result.warnings, [])
+        try O66Compiler.assertStructuralIntegrity([UInt8](result.data))
+    }
+
+    func testCompressionOptionChangesBinaryResources() throws {
+        var project = WatchFaceProject(name: "Compression", deviceID: "xiaomi_band_10_pro")
+        let image = WidgetItem(kind: .image, name: "Flat", x: 0, y: 0, width: 96, height: 96)
+        project.widgets = [image]
+        project.images[image.id.uuidString] = makePNG(width: 96, height: 96)
+
+        let compressed = try FaceBinCompiler.compile(project, previewPNG: nil, compressImages: true)
+        let raw = try FaceBinCompiler.compile(project, previewPNG: nil, compressImages: false)
+        XCTAssertNotEqual(compressed.data, raw.data)
+        XCTAssertLessThan(compressed.data.count, raw.data.count)
+    }
+
+    func testContainerActsAsStructuralGrouping() throws {
+        var project = WatchFaceProject(name: "Container", deviceID: "xiaomi_band_10_pro")
+        project.widgets = [WidgetItem(kind: .container, name: "Group")]
+        let result = try FaceBinCompiler.compile(project)
+        XCTAssertEqual(result.warnings, [])
         try O66Compiler.assertStructuralIntegrity([UInt8](result.data))
     }
 

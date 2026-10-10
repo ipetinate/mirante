@@ -7,6 +7,7 @@ struct ExportSheet: View {
 
     @State private var exportName = ""
     @State private var includeAOD: Bool?
+    @State private var compressImages = true
     @State private var exportURL: URL?
     @State private var binURL: URL?
     @State private var compileError: String?
@@ -19,7 +20,7 @@ struct ExportSheet: View {
                 Section("File") {
                     TextField("Name", text: $exportName)
                     LabeledContent("Format") {
-                        Text("FPRJ (XML)")
+                        Text(editor.project.format == .mirante ? "Mirante (native)" : "FPRJ (XML)")
                     }
                     LabeledContent("Device") {
                         Text(editor.project.device.name)
@@ -30,11 +31,13 @@ struct ExportSheet: View {
                             set: { includeAOD = $0 }
                         ))
                     }
+                    Toggle("Compress images", isOn: $compressImages)
+                        .help("Use the O66 palette/RLE image codec to reduce the final binary size.")
                 }
 
                 Section("Source preview") {
                     ScrollView {
-                        Text(FprjExporter.export(previewProject))
+                        Text(sourcePreview)
                             .font(.system(.caption, design: .monospaced))
                             .textSelection(.enabled)
                             .frame(maxWidth: .infinity, alignment: .leading)
@@ -43,6 +46,7 @@ struct ExportSheet: View {
                 }
 
                 Section("Compiled (.bin)") {
+                    InstallStatusView()
                     if let binURL {
                         ShareLink(
                             item: binURL,
@@ -55,7 +59,7 @@ struct ExportSheet: View {
                         } label: {
                             Label("Install to Band", systemImage: "antenna.radiowaves.left.and.right")
                         }
-                        .disabled(transport.isConnected ? transport.authKey == nil : false)
+                        .disabled(transport.installPhase.isRunning || (transport.isConnected ? transport.authKey == nil : false))
                         Button {
                             compile()
                         } label: {
@@ -84,7 +88,7 @@ struct ExportSheet: View {
                                 .font(.footnote)
                                 .foregroundStyle(.secondary)
                         }
-                        Text("Widgets above were skipped in the compiled .bin. Their images and metadata live on in the exported .fprj.")
+                        Text("The binary build is blocked until these compatibility warnings are resolved. The editable project remains safe.")
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                     } else {
@@ -93,6 +97,10 @@ struct ExportSheet: View {
                             .foregroundStyle(.secondary)
                     }
                 }
+
+                #if os(macOS)
+                EmulatorSection(binURL: binURL)
+                #endif
             }
             .formStyle(.grouped)
                 #if os(iOS)
@@ -148,7 +156,7 @@ struct ExportSheet: View {
         Task { @MainActor in
             let result: O66CompiledFace
             do {
-                result = try FaceBinCompiler.compile(previewProject, editor: editor)
+                result = try FaceBinCompiler.compile(previewProject, editor: editor, compressImages: compressImages)
             } catch let error as O66CompilerError {
                 compileError = error.errorDescription
                 didCompile = false
@@ -159,6 +167,11 @@ struct ExportSheet: View {
                 return
             }
             compileWarnings = result.warnings
+            if !result.warnings.isEmpty {
+                compileError = String(localized: "This face contains components that the Smart Band 10 Pro backend cannot compile yet. Remove or replace the listed widgets before exporting a .bin.")
+                didCompile = false
+                return
+            }
             // Defer the disk write off the main actor a beat so the progress
             // indicator renders on large projects.
             try? await Task.sleep(nanoseconds: 30_000_000)
@@ -227,7 +240,7 @@ struct ExportSheet: View {
 
     private func prepareExport() {
         let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(exportFileName)
-        let data = Data(FprjExporter.export(previewProject).utf8)
+        let data = exportData
         do {
             try data.write(to: tempURL)
             exportURL = tempURL
@@ -247,7 +260,21 @@ struct ExportSheet: View {
         let safe = base
             .replacingOccurrences(of: "/", with: "-")
             .replacingOccurrences(of: ":", with: "-")
-        return "\(safe).fprj"
+        return "\(safe).\(editor.project.format.fileExtension)"
+    }
+
+    private var exportData: Data {
+        if editor.project.format == .mirante {
+            return previewProject.exportMiranteData() ?? Data()
+        }
+        return previewProject.exportData()
+    }
+
+    private var sourcePreview: String {
+        if editor.project.format == .mirante {
+            return String(data: exportData, encoding: .utf8) ?? ""
+        }
+        return FprjExporter.export(previewProject)
     }
 
     private var compiledFileName: String {

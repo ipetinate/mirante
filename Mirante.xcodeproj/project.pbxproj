@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		0659B0E4EBCF093CC829B1B6 /* BLETransport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E970C46EE1271C8AC9A5983 /* BLETransport.swift */; };
+		067DC60DB4232E319A2B42BA /* MiFitnessKeyExtractorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6DAB6C4BDB84A1DF98800A7 /* MiFitnessKeyExtractorTests.swift */; };
 		09D29475755E6668DEC64253 /* FprjExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4941C5A99947E381834E93FA /* FprjExporter.swift */; };
 		0B56C3E02B107491B0D9415D /* MiranteApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4455774F09820D272E091AEE /* MiranteApp.swift */; };
 		16311F7E88BA707C8EDAC7E9 /* O66ImageCodec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 079360776F05A0188053D986 /* O66ImageCodec.swift */; };
@@ -15,13 +16,18 @@
 		1F78A75F356C0B5865FA2971 /* Widget.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3B30F4F23FF0E6CDB6A96A6 /* Widget.swift */; };
 		21976B31EB95C3AF2F2E00A6 /* ExploreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75C6D34B0F6B851833D5C5B3 /* ExploreView.swift */; };
 		23A6D2DBDE9C74AA07FF9C89 /* XiaomiProtocolSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBAD4B46A409D9027D7EFE33 /* XiaomiProtocolSession.swift */; };
+		2E0359C8CE54EC50B04B62D1 /* ZIPFoundation in Frameworks */ = {isa = PBXBuildFile; productRef = BD005F1B2B7BE47D1676EC1E /* ZIPFoundation */; };
 		2E191B55DA4BBB5933E6566F /* BandMatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAEB7F635C2D22CDD1BD4AFC /* BandMatcher.swift */; };
+		30CFBE16DE7831A218F49A02 /* EmulatorSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86AEAE6FBDB3AC258B9B3C94 /* EmulatorSection.swift */; };
 		3B95B16CA32817570E0155D2 /* AuthKeyStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 449A423283F31B57A717CCA9 /* AuthKeyStore.swift */; };
+		3E3D97892D01591BAFF290F7 /* ImageCropSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A28483DAE162A1F6AA4BFCF /* ImageCropSheet.swift */; };
 		42AD2FBE089725A5F752AC77 /* EditorStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20C8C7236B6061B96002F963 /* EditorStateTests.swift */; };
 		441CE69E2C6D066931875C53 /* ForcedWindowFrame.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91BEC7D605A17856DB1E8079 /* ForcedWindowFrame.swift */; };
 		46D8891A2BE21C2BFA82F533 /* AuthKeyStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70A6306C448619BBAE4DEC41 /* AuthKeyStoreTests.swift */; };
+		48CF9A492AAC193DACAE803D /* InstallStatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CADA4EFEFD8AE9BEE48594EC /* InstallStatusView.swift */; };
 		4DFED9DE04A67E3FCE6E1CBE /* BLETransportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BE700F2D7D288EB5AC7C0C6 /* BLETransportTests.swift */; };
 		4E4DAFA8BA651A5199F83BCC /* LayersSidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 041697055B63495E5843B6C3 /* LayersSidebarView.swift */; };
+		51A63ED33E265A093BF13A9F /* HomeFlowUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61A7B61BE835369DD4C2E559 /* HomeFlowUITests.swift */; };
 		5632D280D6C6109350E1A91C /* O66Glyphs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 956DB24F9A14650F7D630D97 /* O66Glyphs.swift */; };
 		57A3BBB2530A62D025246B72 /* O66Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEF3BC4B925715506450B500 /* O66Tests.swift */; };
 		5C722A2BCEFF35DF094B267C /* XiaomiProto.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6D95CDAAAA6094B0254F9CE /* XiaomiProto.swift */; };
@@ -29,6 +35,7 @@
 		653D8999295CEDFAD2DBDA49 /* DeviceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 205AC94A798378D167F7102E /* DeviceTests.swift */; };
 		6561BFD6D7417EBEB326529B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A5AFB6DA6FAE590F3C176BB7 /* Assets.xcassets */; };
 		69A680D9E28CE9346059D785 /* EditorCanvasView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9F8093E67FEA9A446C095E6 /* EditorCanvasView.swift */; };
+		7052EE1A007931B895245189 /* EmulatorBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05514D41D70600026D5C34D3 /* EmulatorBridge.swift */; };
 		70B480C946354A40E94D5A55 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F130911354E1CFDC1937BA18 /* ContentView.swift */; };
 		711BE5EAEBC50C54B79552E6 /* StoreConfigStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C2CBE265F07BE226500950E /* StoreConfigStore.swift */; };
 		774071F85C9673C61ECEBC12 /* EditorStateExtendedTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65951E68DF56AE75BF9BCC47 /* EditorStateExtendedTests.swift */; };
@@ -50,6 +57,7 @@
 		B86FDB775AF7AA1EBE294F95 /* IntClamp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F06CF51B63509454F904FB4 /* IntClamp.swift */; };
 		B895400A84400CD9181E3896 /* History.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4953EC89772B84F5A62E29C8 /* History.swift */; };
 		BE20F1B8D8F28D02B2EE6CC5 /* DataSourceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 706FF2EDA5A4DC6015B6072A /* DataSourceTests.swift */; };
+		BEA46D2AD497C2FF7EEB1BE7 /* MiranteProjectCodec.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5331648B56D41797056E6DE /* MiranteProjectCodec.swift */; };
 		C60952328A412D7723456A24 /* StoreClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78D6D81F29CF803F0E7C45E2 /* StoreClient.swift */; };
 		C7B840B85812C983A24E89B4 /* FprjExporterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8FFB67486596CC95EF36A58 /* FprjExporterTests.swift */; };
 		CEA5CB2D5A898376E5295ED2 /* StoreFaceDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53BF8C093E0CC534716E7D53 /* StoreFaceDetailView.swift */; };
@@ -70,6 +78,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		64AEC021A409E650A65F9D60 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 8C9310D0C4412B0D493A83A2 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 2D84CA76DC174537DD1B42B8;
+			remoteInfo = Mirante;
+		};
 		E869203DCE0C995BB79CB4BD /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 8C9310D0C4412B0D493A83A2 /* Project object */;
@@ -83,15 +98,18 @@
 		03CCCD8347A8A09F5E26C2E8 /* NewProjectSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewProjectSheet.swift; sourceTree = "<group>"; };
 		0403E9DE0AEC2B796EA3DEE8 /* WidgetTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetTests.swift; sourceTree = "<group>"; };
 		041697055B63495E5843B6C3 /* LayersSidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayersSidebarView.swift; sourceTree = "<group>"; };
+		05514D41D70600026D5C34D3 /* EmulatorBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmulatorBridge.swift; sourceTree = "<group>"; };
 		0775ECACCB3D1AA731E60963 /* Mirante.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Mirante.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		079360776F05A0188053D986 /* O66ImageCodec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = O66ImageCodec.swift; sourceTree = "<group>"; };
 		09C224034FB81440E1BA923B /* PublishSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublishSheet.swift; sourceTree = "<group>"; };
+		0A28483DAE162A1F6AA4BFCF /* ImageCropSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageCropSheet.swift; sourceTree = "<group>"; };
 		0A88B8FA7A50E71D7321AF7F /* O66Compiler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = O66Compiler.swift; sourceTree = "<group>"; };
 		0B9701B16B6BF2651F3584C3 /* O66Bytes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = O66Bytes.swift; sourceTree = "<group>"; };
 		0EE0F20F3CC3F165E8A25F69 /* ConnectionSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionSheet.swift; sourceTree = "<group>"; };
 		11407996167C0FD661E8EAA5 /* PreviewRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewRenderer.swift; sourceTree = "<group>"; };
 		16FBAF505CB1ACA99CF7C014 /* FaceBinCompilerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FaceBinCompilerTests.swift; sourceTree = "<group>"; };
 		197728C41EE9E3F6CA86BBC5 /* AuthKeySheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthKeySheet.swift; sourceTree = "<group>"; };
+		1D8BBCCEFCB4C3C0AD0C8BAA /* MiranteUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = MiranteUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		1F01BEE10C767C5289360401 /* Store.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Store.swift; sourceTree = "<group>"; };
 		205AC94A798378D167F7102E /* DeviceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceTests.swift; sourceTree = "<group>"; };
 		20C8C7236B6061B96002F963 /* EditorStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditorStateTests.swift; sourceTree = "<group>"; };
@@ -105,6 +123,7 @@
 		53268034865230B399587E9C /* WatchFaceProject.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchFaceProject.swift; sourceTree = "<group>"; };
 		53BF8C093E0CC534716E7D53 /* StoreFaceDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreFaceDetailView.swift; sourceTree = "<group>"; };
 		544350F53171C05E3B0E9067 /* XiaomiCrypto.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XiaomiCrypto.swift; sourceTree = "<group>"; };
+		61A7B61BE835369DD4C2E559 /* HomeFlowUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeFlowUITests.swift; sourceTree = "<group>"; };
 		62857425C7489803BC1E42D6 /* HistoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryTests.swift; sourceTree = "<group>"; };
 		6533B51652C06FC6A4AE95AF /* EditorState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditorState.swift; sourceTree = "<group>"; };
 		65951E68DF56AE75BF9BCC47 /* EditorStateExtendedTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditorStateExtendedTests.swift; sourceTree = "<group>"; };
@@ -118,6 +137,7 @@
 		7BE700F2D7D288EB5AC7C0C6 /* BLETransportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BLETransportTests.swift; sourceTree = "<group>"; };
 		7C2CBE265F07BE226500950E /* StoreConfigStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreConfigStore.swift; sourceTree = "<group>"; };
 		830164214F74A0FBE1B6719A /* O66Rle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = O66Rle.swift; sourceTree = "<group>"; };
+		86AEAE6FBDB3AC258B9B3C94 /* EmulatorSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmulatorSection.swift; sourceTree = "<group>"; };
 		8F06CF51B63509454F904FB4 /* IntClamp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntClamp.swift; sourceTree = "<group>"; };
 		91BEC7D605A17856DB1E8079 /* ForcedWindowFrame.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForcedWindowFrame.swift; sourceTree = "<group>"; };
 		93BB9DBBC979C1D6DA7C40F9 /* FieldHelp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FieldHelp.swift; sourceTree = "<group>"; };
@@ -125,13 +145,16 @@
 		95CD75FE7E5DA45B9A5F11D2 /* Device.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Device.swift; sourceTree = "<group>"; };
 		A2E3E521E9744F312147EE28 /* FaceBinCompiler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FaceBinCompiler.swift; sourceTree = "<group>"; };
 		A44E625BE9E3A8F11D0A111C /* Mirante.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Mirante.entitlements; sourceTree = "<group>"; };
+		A5331648B56D41797056E6DE /* MiranteProjectCodec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MiranteProjectCodec.swift; sourceTree = "<group>"; };
 		A5AFB6DA6FAE590F3C176BB7 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		A6DAB6C4BDB84A1DF98800A7 /* MiFitnessKeyExtractorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MiFitnessKeyExtractorTests.swift; sourceTree = "<group>"; };
 		A9F8093E67FEA9A446C095E6 /* EditorCanvasView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditorCanvasView.swift; sourceTree = "<group>"; };
 		B8FFB67486596CC95EF36A58 /* FprjExporterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FprjExporterTests.swift; sourceTree = "<group>"; };
 		C111CFA594CF13DFCCBEE11F /* LivePreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LivePreviewView.swift; sourceTree = "<group>"; };
 		C4BDB1BD33581CBD0EEA40E2 /* XiaomiSppPacketV2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XiaomiSppPacketV2.swift; sourceTree = "<group>"; };
 		C7FC24B9BC32555E79D84109 /* EditorToolbar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditorToolbar.swift; sourceTree = "<group>"; };
 		C85EFB9914F149A4C84A50F1 /* MiFitnessKeyExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MiFitnessKeyExtractor.swift; sourceTree = "<group>"; };
+		CADA4EFEFD8AE9BEE48594EC /* InstallStatusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstallStatusView.swift; sourceTree = "<group>"; };
 		CAEB7F635C2D22CDD1BD4AFC /* BandMatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BandMatcher.swift; sourceTree = "<group>"; };
 		CE8F252DF593FEC298C1ECFB /* BandMatcherTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BandMatcherTests.swift; sourceTree = "<group>"; };
 		D3B30F4F23FF0E6CDB6A96A6 /* Widget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Widget.swift; sourceTree = "<group>"; };
@@ -145,14 +168,34 @@
 		F8190ECC4B430DC73D9D4EEE /* DataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataSource.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFrameworksBuildPhase section */
+		835623D0404487AD32624CFC /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2E0359C8CE54EC50B04B62D1 /* ZIPFoundation in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
 /* Begin PBXGroup section */
 		4D0918C46A266D1FF8EE493A = {
 			isa = PBXGroup;
 			children = (
 				B68CF0C8909F34A89271A7FC /* Mirante */,
 				86B7238FA654DD8009F2657A /* MiranteTests */,
+				4E3721F79647428F5A9C33BD /* MiranteUITests */,
 				E18A6E33FC80A0F4611BE255 /* Products */,
 			);
+			sourceTree = "<group>";
+		};
+		4E3721F79647428F5A9C33BD /* MiranteUITests */ = {
+			isa = PBXGroup;
+			children = (
+				61A7B61BE835369DD4C2E559 /* HomeFlowUITests.swift */,
+			);
+			path = MiranteUITests;
 			sourceTree = "<group>";
 		};
 		4ECF79A33759A5426C509D44 /* Services */ = {
@@ -162,9 +205,11 @@
 				CAEB7F635C2D22CDD1BD4AFC /* BandMatcher.swift */,
 				30636C9FCC3FC7B416959EE6 /* BandTransport.swift */,
 				6E970C46EE1271C8AC9A5983 /* BLETransport.swift */,
+				05514D41D70600026D5C34D3 /* EmulatorBridge.swift */,
 				A2E3E521E9744F312147EE28 /* FaceBinCompiler.swift */,
 				4941C5A99947E381834E93FA /* FprjExporter.swift */,
 				C85EFB9914F149A4C84A50F1 /* MiFitnessKeyExtractor.swift */,
+				A5331648B56D41797056E6DE /* MiranteProjectCodec.swift */,
 				11407996167C0FD661E8EAA5 /* PreviewRenderer.swift */,
 				78D6D81F29CF803F0E7C45E2 /* StoreClient.swift */,
 				7C2CBE265F07BE226500950E /* StoreConfigStore.swift */,
@@ -181,6 +226,7 @@
 				F130911354E1CFDC1937BA18 /* ContentView.swift */,
 				75C6D34B0F6B851833D5C5B3 /* ExploreView.swift */,
 				91BEC7D605A17856DB1E8079 /* ForcedWindowFrame.swift */,
+				CADA4EFEFD8AE9BEE48594EC /* InstallStatusView.swift */,
 				53BF8C093E0CC534716E7D53 /* StoreFaceDetailView.swift */,
 				866CB49B25F23632C4B9D0C6 /* Editor */,
 				B966410071AA3156F7A5CD49 /* Sheets */,
@@ -203,6 +249,7 @@
 				A9F8093E67FEA9A446C095E6 /* EditorCanvasView.swift */,
 				C7FC24B9BC32555E79D84109 /* EditorToolbar.swift */,
 				93BB9DBBC979C1D6DA7C40F9 /* FieldHelp.swift */,
+				0A28483DAE162A1F6AA4BFCF /* ImageCropSheet.swift */,
 				6A9E248E2C77F873214433BB /* ImageSourceMenu.swift */,
 				3BCCD3DCB44B0C0779C15D0B /* InspectorView.swift */,
 				041697055B63495E5843B6C3 /* LayersSidebarView.swift */,
@@ -223,6 +270,7 @@
 				16FBAF505CB1ACA99CF7C014 /* FaceBinCompilerTests.swift */,
 				B8FFB67486596CC95EF36A58 /* FprjExporterTests.swift */,
 				62857425C7489803BC1E42D6 /* HistoryTests.swift */,
+				A6DAB6C4BDB84A1DF98800A7 /* MiFitnessKeyExtractorTests.swift */,
 				DEF3BC4B925715506450B500 /* O66Tests.swift */,
 				DB87D393ECED3CB90B97C996 /* WatchFaceProjectTests.swift */,
 				0403E9DE0AEC2B796EA3DEE8 /* WidgetTests.swift */,
@@ -248,6 +296,7 @@
 			isa = PBXGroup;
 			children = (
 				197728C41EE9E3F6CA86BBC5 /* AuthKeySheet.swift */,
+				86AEAE6FBDB3AC258B9B3C94 /* EmulatorSection.swift */,
 				D9B0E38A90837F8299FD446E /* ExportSheet.swift */,
 				03CCCD8347A8A09F5E26C2E8 /* NewProjectSheet.swift */,
 				09C224034FB81440E1BA923B /* PublishSheet.swift */,
@@ -303,6 +352,7 @@
 			children = (
 				0775ECACCB3D1AA731E60963 /* Mirante.app */,
 				73B93C11DC16E73B10CFD433 /* MiranteTests.xctest */,
+				1D8BBCCEFCB4C3C0AD0C8BAA /* MiranteUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -328,6 +378,7 @@
 			buildPhases = (
 				20E2AAC4E7F3C8DEF2165D9B /* Sources */,
 				EB5E6B2A68480068552B3BDE /* Resources */,
+				835623D0404487AD32624CFC /* Frameworks */,
 			);
 			buildRules = (
 			);
@@ -335,6 +386,7 @@
 			);
 			name = Mirante;
 			packageProductDependencies = (
+				BD005F1B2B7BE47D1676EC1E /* ZIPFoundation */,
 			);
 			productName = Mirante;
 			productReference = 0775ECACCB3D1AA731E60963 /* Mirante.app */;
@@ -358,6 +410,24 @@
 			productReference = 73B93C11DC16E73B10CFD433 /* MiranteTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
+		96B63B18FC8927B796B1D49D /* MiranteUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 73064124D7DF7DA87E6C7C59 /* Build configuration list for PBXNativeTarget "MiranteUITests" */;
+			buildPhases = (
+				38E63D6C5EABEDA946D155D0 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				6F933025097129DEC5E892CD /* PBXTargetDependency */,
+			);
+			name = MiranteUITests;
+			packageProductDependencies = (
+			);
+			productName = MiranteUITests;
+			productReference = 1D8BBCCEFCB4C3C0AD0C8BAA /* MiranteUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -370,6 +440,9 @@
 					2D84CA76DC174537DD1B42B8 = {
 						ProvisioningStyle = Automatic;
 					};
+					96B63B18FC8927B796B1D49D = {
+						TestTargetID = 2D84CA76DC174537DD1B42B8;
+					};
 				};
 			};
 			buildConfigurationList = 8F74E35F977A33FC53E30F87 /* Build configuration list for PBXProject "Mirante" */;
@@ -381,6 +454,9 @@
 			);
 			mainGroup = 4D0918C46A266D1FF8EE493A;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				C0C1D14033D86EA28321367C /* XCRemoteSwiftPackageReference "ZIPFoundation" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = E18A6E33FC80A0F4611BE255 /* Products */;
 			projectDirPath = "";
@@ -388,6 +464,7 @@
 			targets = (
 				2D84CA76DC174537DD1B42B8 /* Mirante */,
 				2DE656B9E295FF0F55961FEE /* MiranteTests */,
+				96B63B18FC8927B796B1D49D /* MiranteUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -420,6 +497,8 @@
 				69A680D9E28CE9346059D785 /* EditorCanvasView.swift in Sources */,
 				A24D6D3AA33155F18C7783E5 /* EditorState.swift in Sources */,
 				6069984338DDE1001B1AE7BA /* EditorToolbar.swift in Sources */,
+				7052EE1A007931B895245189 /* EmulatorBridge.swift in Sources */,
+				30CFBE16DE7831A218F49A02 /* EmulatorSection.swift in Sources */,
 				21976B31EB95C3AF2F2E00A6 /* ExploreView.swift in Sources */,
 				D1A14ED57ABD9C9BFC9B2698 /* ExportSheet.swift in Sources */,
 				1EED5837D8535AC5E1CF0BFB /* FaceBinCompiler.swift in Sources */,
@@ -427,15 +506,18 @@
 				441CE69E2C6D066931875C53 /* ForcedWindowFrame.swift in Sources */,
 				09D29475755E6668DEC64253 /* FprjExporter.swift in Sources */,
 				B895400A84400CD9181E3896 /* History.swift in Sources */,
+				3E3D97892D01591BAFF290F7 /* ImageCropSheet.swift in Sources */,
 				FD24980A0217479D2F015987 /* ImageSourceMenu.swift in Sources */,
 				8631937F4158C7AEA51E60B9 /* ImageTransform.swift in Sources */,
 				7B1494CCE929A125DE59B777 /* InspectorView.swift in Sources */,
+				48CF9A492AAC193DACAE803D /* InstallStatusView.swift in Sources */,
 				B86FDB775AF7AA1EBE294F95 /* IntClamp.swift in Sources */,
 				4E4DAFA8BA651A5199F83BCC /* LayersSidebarView.swift in Sources */,
 				7BF4CFE75E5E8D328F6AA319 /* LivePreviewView.swift in Sources */,
 				CFF3FE6712A44B71238A8A8E /* LocalStoreToken.swift in Sources */,
 				DA0448FD65CB764AD4E226AB /* MiFitnessKeyExtractor.swift in Sources */,
 				0B56C3E02B107491B0D9415D /* MiranteApp.swift in Sources */,
+				BEA46D2AD497C2FF7EEB1BE7 /* MiranteProjectCodec.swift in Sources */,
 				E6996F489D52F0E2494DFEB1 /* NewProjectSheet.swift in Sources */,
 				915F0207139B19683FF7F3B9 /* O66Bytes.swift in Sources */,
 				8DFF85C61F1E4DE0896EBC23 /* O66Compiler.swift in Sources */,
@@ -457,6 +539,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		38E63D6C5EABEDA946D155D0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				51A63ED33E265A093BF13A9F /* HomeFlowUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		690DEDD022DE340B6F1B5037 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -471,6 +561,7 @@
 				EB4FDB6662CA12339216DB61 /* FaceBinCompilerTests.swift in Sources */,
 				C7B840B85812C983A24E89B4 /* FprjExporterTests.swift in Sources */,
 				9D8B206E7AC7E29E13AFFEB0 /* HistoryTests.swift in Sources */,
+				067DC60DB4232E319A2B42BA /* MiFitnessKeyExtractorTests.swift in Sources */,
 				57A3BBB2530A62D025246B72 /* O66Tests.swift in Sources */,
 				D30D8258AC20682C5780629B /* WatchFaceProjectTests.swift in Sources */,
 				7CF113D9C20309752BAB9A36 /* WidgetTests.swift in Sources */,
@@ -484,6 +575,11 @@
 			isa = PBXTargetDependency;
 			target = 2D84CA76DC174537DD1B42B8 /* Mirante */;
 			targetProxy = E869203DCE0C995BB79CB4BD /* PBXContainerItemProxy */;
+		};
+		6F933025097129DEC5E892CD /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 2D84CA76DC174537DD1B42B8 /* Mirante */;
+			targetProxy = 64AEC021A409E650A65F9D60 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -679,6 +775,23 @@
 			};
 			name = Release;
 		};
+		7CDB49F3625AA2FFA6F7D9DB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.mirante.MiranteUITests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Mirante;
+			};
+			name = Release;
+		};
 		EB3B9C380C12B813F4BD1208 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -713,6 +826,23 @@
 			};
 			name = Debug;
 		};
+		FE92E7AE939E6BDC5095AE0F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.mirante.MiranteUITests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Mirante;
+			};
+			name = Debug;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -721,6 +851,15 @@
 			buildConfigurations = (
 				2BFA638D338A463E8FEBB269 /* Debug */,
 				4624FBAF772F6A11705846DE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		73064124D7DF7DA87E6C7C59 /* Build configuration list for PBXNativeTarget "MiranteUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FE92E7AE939E6BDC5095AE0F /* Debug */,
+				7CDB49F3625AA2FFA6F7D9DB /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
@@ -744,6 +883,25 @@
 			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		C0C1D14033D86EA28321367C /* XCRemoteSwiftPackageReference "ZIPFoundation" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/weichsel/ZIPFoundation";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.9.19;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		BD005F1B2B7BE47D1676EC1E /* ZIPFoundation */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C0C1D14033D86EA28321367C /* XCRemoteSwiftPackageReference "ZIPFoundation" */;
+			productName = ZIPFoundation;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 8C9310D0C4412B0D493A83A2 /* Project object */;
 }

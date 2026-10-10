@@ -2,7 +2,7 @@ import Foundation
 import Observation
 
 #if os(iOS)
-import CoreBluetooth
+@preconcurrency import CoreBluetooth
 import UIKit
 #endif
 
@@ -23,6 +23,14 @@ enum GATTDiagnosticsState: Equatable {
     case idle
     case running
     case done
+}
+
+enum InstallPhase: Equatable {
+    case idle, preparing, connecting, authenticating, negotiating
+    case uploading(Double), activating, succeeded, failed(String)
+    var isRunning: Bool {
+        switch self { case .preparing, .connecting, .authenticating, .negotiating, .uploading, .activating: return true; default: return false }
+    }
 }
 
 @MainActor
@@ -49,6 +57,17 @@ final class BandTransport: NSObject, WatchFaceTransport {
     private(set) var diagnosticsReport: String?
     /// 0...1 install/upload progress while a face is being pushed to the band.
     private(set) var installProgress: Double?
+    private(set) var installPhase: InstallPhase = .idle
+    private(set) var installDetail = ""
+    private(set) var installDiagnostics: [String] = []
+
+    private func recordInstallDiagnostic(_ message: String) {
+        installDiagnostics.append(message)
+        if installDiagnostics.count > 100 { installDiagnostics.removeFirst() }
+        #if DEBUG
+        print("[install] \(message)")
+        #endif
+    }
 
     var isConnected: Bool { connectionState == .connected }
 
@@ -180,6 +199,7 @@ final class BandTransport: NSObject, WatchFaceTransport {
             lastErrorMessage = TransportError.deviceNotPaired.errorDescription
             return
         }
+        stopScanning()
         pendingBandID = band.id
         connectionState = .connecting
         lastErrorMessage = nil
@@ -213,6 +233,7 @@ final class BandTransport: NSObject, WatchFaceTransport {
     /// is used to confirm whether the Xiaomi protocol channel is exposed over
     /// BLE (service `FE95` with notify on `0000005E` and write on `0000005F`).
     func runGATTDiagnostics() {
+        guard !installPhase.isRunning else { return }
         #if os(iOS)
         guard let central, central.state == .poweredOn else {
             lastErrorMessage = TransportError.bluetoothUnavailable.errorDescription
@@ -244,21 +265,29 @@ final class BandTransport: NSObject, WatchFaceTransport {
     }
 
     func install(payload: Data, on device: Device) async throws {
+        guard !installPhase.isRunning else { throw TransportError.transferFailed("Another installation is already in progress.") }
+        guard diagnosticsState != .running else { throw TransportError.transferFailed("Wait for Bluetooth diagnostics to finish before installing.") }
+        installPhase = .preparing
+        installDiagnostics = []
+        installDetail = "Preparing installation"
         let validation = validate(payload: payload, for: device)
-        guard validation.isOk else { throw TransportError.validation(validation) }
+        guard validation.isOk else { installPhase = .failed(validation.message); throw TransportError.validation(validation) }
         guard let authKey, !authKey.isEmpty else {
             lastErrorMessage = TransportError.authKeyRequired.errorDescription
+            installPhase = .failed(TransportError.authKeyRequired.errorDescription ?? "Auth key required.")
             throw TransportError.authKeyRequired
         }
         #if os(iOS)
         guard let central, central.state == .poweredOn else {
             lastErrorMessage = TransportError.bluetoothUnavailable.errorDescription
+            installPhase = .failed(TransportError.bluetoothUnavailable.errorDescription ?? "Bluetooth unavailable.")
             throw TransportError.bluetoothUnavailable
         }
         guard let bandID = connectedDevice?.id,
               let peripheral = peripherals[bandID],
               peripheral.state == .connected else {
             lastErrorMessage = TransportError.deviceNotPaired.errorDescription
+            installPhase = .failed(TransportError.deviceNotPaired.errorDescription ?? "Device not connected.")
             throw TransportError.deviceNotPaired
         }
 
@@ -266,6 +295,7 @@ final class BandTransport: NSObject, WatchFaceTransport {
         peripheral.delegate = self
 
         do {
+            installPhase = .connecting
             // Find the Xiaomi protocol channel (FE95 service, 5E notify, 5F write).
             let service = try await discoverXiaomiProtocolService(peripheral: peripheral)
             guard let service else {
@@ -276,8 +306,7 @@ final class BandTransport: NSObject, WatchFaceTransport {
                 throw TransportError.sendingUnavailable
             }
 
-            peripheral.setNotifyValue(true, for: channel.rx)
-            try await waitForInstallNotify()
+            try await waitForInstallNotify(peripheral: peripheral, characteristic: channel.rx)
 
             // Some firmwares only expose write-without-response on the TX
             // channel (005F), so pick the type the peripheral advertises.
@@ -285,18 +314,28 @@ final class BandTransport: NSObject, WatchFaceTransport {
                 ? .withResponse
                 : .withoutResponse
             let maxWrite = peripheral.maximumWriteValueLength(for: writeType)
-            let writeChunk = max(20, maxWrite - 3)
+            // CoreBluetooth returns payload capacity, already excluding ATT.
+            let writeChunk = max(1, maxWrite)
+            recordInstallDiagnostic("BLE v2; write payload capacity=\(writeChunk); withResponse=\(writeType == .withResponse)")
 
             let session = XiaomiProtocolSession()
+            installPhase = .authenticating
             installSession = session
+            session.onStage = { [weak self] value in
+                self?.installDetail = value
+                if value == "Activating watchface" { self?.installPhase = .activating }
+            }
+            session.onDiagnostic = { [weak self] in self?.recordInstallDiagnostic($0) }
             session.writer = { [weak self] frame in
                 guard let self else { throw TransportError.transferFailed("Transport went away.") }
                 try await self.writeFrame(peripheral, to: channel.tx, frame, chunk: writeChunk, writeType: writeType)
             }
             session.onProgress = { [weak self] progress in
                 self?.installProgress = progress
+                self?.installPhase = .uploading(progress)
             }
             defer {
+                session.abort(TransportError.abortedByUser)
                 installSession = nil
                 installProgress = nil
             }
@@ -306,20 +345,57 @@ final class BandTransport: NSObject, WatchFaceTransport {
                 phoneName: UIDevice.current.model,
                 region: Self.currentRegion()
             )
+            installPhase = .negotiating
             try await session.installWatchface(payload: payload)
+            installPhase = .succeeded
         } catch {
+            failInstallWaits(error)
+            recordInstallDiagnostic("Failed: \(error.localizedDescription)")
+            central.cancelPeripheralConnection(peripheral)
             lastErrorMessage = error.localizedDescription
             installSession = nil
             installProgress = nil
+            installPhase = .failed(error.localizedDescription)
             throw error
         }
         #else
         lastErrorMessage = TransportError.sendingUnavailable.errorDescription
+        installPhase = .failed(lastErrorMessage ?? "Installation requires iOS.")
         throw TransportError.sendingUnavailable
         #endif
     }
 
+    func resetInstallStatus() {
+        guard !installPhase.isRunning else { return }
+        installProgress = nil
+        installPhase = .idle
+    }
+
     #if os(iOS)
+    private func failInstallWaits(_ error: Error) {
+        installSession?.abort(error)
+        let services = installServicesContinuation
+        let characteristics = installCharacteristicsContinuation
+        let notify = installNotifyContinuation
+        let write = installWriteContinuation
+        installServicesContinuation = nil
+        installCharacteristicsContinuation = nil
+        installNotifyContinuation = nil
+        installWriteContinuation = nil
+        services?.resume(throwing: error)
+        characteristics?.resume(throwing: error)
+        notify?.resume(throwing: error)
+        write?.resume(throwing: error)
+    }
+
+    private func installDeadline(_ step: String) -> Task<Void, Never> {
+        Task { @MainActor [weak self] in
+            do { try await Task.sleep(nanoseconds: 25_000_000_000) }
+            catch { return }
+            self?.failInstallWaits(TransportError.transferFailed("Bluetooth timeout: \(step). Reconnect before retrying."))
+        }
+    }
+
     private struct XiaomiChannel {
         let rx: CBCharacteristic
         let tx: CBCharacteristic
@@ -341,10 +417,15 @@ final class BandTransport: NSObject, WatchFaceTransport {
     /// Discovers every GATT service and returns the Xiaomi protocol service
     /// (FE95), or nil when the device does not expose it.
     private func discoverXiaomiProtocolService(peripheral: CBPeripheral) async throws -> CBService? {
+        let deadline = installDeadline("service discovery")
+        defer { deadline.cancel() }
         installServicesContinuation = nil
-        peripheral.discoverServices(nil)
         let services: [CBService] = try await withCheckedThrowingContinuation { continuation in
             installServicesContinuation = continuation
+            // Register the continuation before starting discovery. Some
+            // peripherals answer synchronously and would otherwise race the
+            // delegate callback, leaving install stuck until timeout.
+            peripheral.discoverServices(nil)
         }
         return services.first { serviceMatches($0.uuid) }
     }
@@ -358,10 +439,12 @@ final class BandTransport: NSObject, WatchFaceTransport {
         peripheral: CBPeripheral,
         service: CBService
     ) async throws -> (rx: CBCharacteristic?, tx: CBCharacteristic?) {
+        let deadline = installDeadline("characteristic discovery")
+        defer { deadline.cancel() }
         installCharacteristicsContinuation = nil
-        peripheral.discoverCharacteristics(nil, for: service)
         let characteristics: [CBCharacteristic] = try await withCheckedThrowingContinuation { continuation in
             installCharacteristicsContinuation = continuation
+            peripheral.discoverCharacteristics(nil, for: service)
         }
         var rx: CBCharacteristic?
         var tx: CBCharacteristic?
@@ -386,10 +469,14 @@ final class BandTransport: NSObject, WatchFaceTransport {
         return stripZeros(expanded) == stripZeros(shortHex)
     }
 
-    private func waitForInstallNotify() async throws {
+    private func waitForInstallNotify(peripheral: CBPeripheral, characteristic: CBCharacteristic) async throws {
+        if characteristic.isNotifying { return }
+        let deadline = installDeadline("enabling notifications")
+        defer { deadline.cancel() }
         installNotifyContinuation = nil
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
             installNotifyContinuation = continuation
+            peripheral.setNotifyValue(true, for: characteristic)
         }
     }
 
@@ -404,22 +491,35 @@ final class BandTransport: NSObject, WatchFaceTransport {
         chunk: Int,
         writeType: CBCharacteristicWriteType
     ) async throws {
+        let isBulk = frame.count > 8 && frame[2] == 3 && frame[8] == 2
+        if !isBulk {
+            recordInstallDiagnostic("Writing frame type=\(frame.count > 2 ? Int(frame[2]) : -1) sequence=\(frame.count > 3 ? Int(frame[3]) : -1) bytes=\(frame.count)")
+        }
         var offset = 0
         while offset < frame.count {
             let end = min(offset + chunk, frame.count)
             let piece = frame.subdata(in: frame.startIndex + offset ..< frame.startIndex + end)
             offset = end
             if writeType == .withResponse {
+                let deadline = installDeadline("writing packet")
+                defer { deadline.cancel() }
                 installWriteContinuation = nil
-                peripheral.writeValue(piece, for: characteristic, type: .withResponse)
                 try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
                     installWriteContinuation = continuation
+                    peripheral.writeValue(piece, for: characteristic, type: .withResponse)
                 }
             } else {
+                let started = Date()
+                while !peripheral.canSendWriteWithoutResponse {
+                    guard peripheral.state == .connected else { throw TransportError.deviceNotPaired }
+                    guard Date().timeIntervalSince(started) < 25 else { throw TransportError.transferFailed("Bluetooth send buffer remained full.") }
+                    try await Task.sleep(nanoseconds: 10_000_000)
+                }
                 peripheral.writeValue(piece, for: characteristic, type: .withoutResponse)
                 try await Task.sleep(nanoseconds: 15_000_000)
             }
         }
+        if !isBulk { recordInstallDiagnostic("Frame handed to Bluetooth") }
     }
 
     /// Mirrors Gadgetbridge's region field: the 2-letter language code.
@@ -509,7 +609,7 @@ final class BandTransport: NSObject, WatchFaceTransport {
 }
 
 #if os(iOS)
-extension BandTransport: CBCentralManagerDelegate {
+extension BandTransport: @preconcurrency CBCentralManagerDelegate {
     func centralManagerDidUpdateState(_ central: CBCentralManager) {
         refreshState()
         if central.state == .poweredOn {
@@ -518,6 +618,7 @@ extension BandTransport: CBCentralManagerDelegate {
                 performScan()
             }
         } else {
+            central.stopScan()
             pendingScan = false
             isScanning = false
             if connectionState != .disconnected {
@@ -542,6 +643,10 @@ extension BandTransport: CBCentralManagerDelegate {
     }
 
     func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
+        // A successful connection ends discovery. Leaving CoreBluetooth scanning
+        // alive causes the sheet to keep collecting peripherals and can race
+        // with the install handshake on some Xiaomi firmwares.
+        stopScanning()
         let fallback = discoveredBands.first { $0.id == peripheral.identifier }
         let name = peripheral.name ?? fallback?.name ?? String(localized: "Unknown Device")
         connectedDevice = DiscoveredBand(
@@ -562,7 +667,7 @@ extension BandTransport: CBCentralManagerDelegate {
         }
     }
 
-    func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral?, error: Error?) {
+    func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
         connectionState = .disconnected
         connectedDevice = nil
         pendingBandID = nil
@@ -570,6 +675,9 @@ extension BandTransport: CBCentralManagerDelegate {
     }
 
     func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
+        if connectedDevice?.id == peripheral.identifier {
+            failInstallWaits(error ?? TransportError.deviceNotPaired)
+        }
         connectionState = .disconnected
         connectedDevice = nil
         pendingBandID = nil
@@ -584,8 +692,9 @@ extension BandTransport: CBCentralManagerDelegate {
 #endif
 
 #if os(iOS)
-extension BandTransport: CBPeripheralDelegate {
+extension BandTransport: @preconcurrency CBPeripheralDelegate {
     func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
+        guard peripheral.identifier == connectedDevice?.id else { return }
         if let pendingServices = installServicesContinuation {
             if let error {
                 pendingServices.resume(throwing: error)
@@ -617,6 +726,8 @@ extension BandTransport: CBPeripheralDelegate {
         didDiscoverCharacteristicsFor service: CBService,
         error: Error?
     ) {
+        guard peripheral.identifier == connectedDevice?.id else { return }
+        if installCharacteristicsContinuation != nil, !serviceMatches(service.uuid) { return }
         if let pendingCharacteristics = installCharacteristicsContinuation {
             if let error {
                 pendingCharacteristics.resume(throwing: error)
@@ -640,11 +751,15 @@ extension BandTransport: CBPeripheralDelegate {
         didUpdateNotificationStateFor characteristic: CBCharacteristic,
         error: Error?
     ) {
+        guard peripheral.identifier == connectedDevice?.id,
+              matches(characteristic: characteristic, shortHex: "0000005E") else { return }
         if let pendingNotify = installNotifyContinuation {
             if let error {
                 pendingNotify.resume(throwing: error)
-            } else {
+            } else if characteristic.isNotifying {
                 pendingNotify.resume(returning: ())
+            } else {
+                pendingNotify.resume(throwing: TransportError.transferFailed("The band did not enable notifications."))
             }
             installNotifyContinuation = nil
         }
@@ -655,6 +770,8 @@ extension BandTransport: CBPeripheralDelegate {
         didWriteValueFor characteristic: CBCharacteristic,
         error: Error?
     ) {
+        guard peripheral.identifier == connectedDevice?.id,
+              matches(characteristic: characteristic, shortHex: "0000005F") else { return }
         if let pendingWrite = installWriteContinuation {
             if let error {
                 pendingWrite.resume(throwing: error)
@@ -670,6 +787,9 @@ extension BandTransport: CBPeripheralDelegate {
         didUpdateValueFor characteristic: CBCharacteristic,
         error: Error?
     ) {
+        guard peripheral.identifier == connectedDevice?.id,
+              matches(characteristic: characteristic, shortHex: "0000005E") else { return }
+        if let error { failInstallWaits(error); return }
         guard installSession != nil, error == nil, let value = characteristic.value else { return }
         installSession?.handleIncoming(value)
     }

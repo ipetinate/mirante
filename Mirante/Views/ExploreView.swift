@@ -583,6 +583,7 @@ struct CompiledFaceDetailView: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
+            InstallStatusView()
             Button(action: send) {
                 Label(
                     transport.isConnected ? "Install to Band" : "Connect & Install",
@@ -592,6 +593,7 @@ struct CompiledFaceDetailView: View {
             }
             .buttonStyle(.borderedProminent)
             .controlSize(.large)
+            .disabled(transport.installPhase.isRunning)
 
             Text("A compiled face is installed as-is. It cannot be edited here, and Mirante validates the file format and size before sending. Installation honors the file exactly — make sure it was made for this band.")
                 .font(.footnote)

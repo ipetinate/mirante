@@ -147,6 +147,7 @@ struct ExportButton: View {
             Label("Export", systemImage: "square.and.arrow.up")
         }
         .help("Export the watch face project")
+        .accessibilityIdentifier("export-button")
         .sheet(isPresented: $showSheet) {
             ExportSheet()
         }

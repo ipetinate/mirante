@@ -60,10 +60,11 @@ enum XiaomiCrypto {
     /// so the length field is 3 bytes and the message must stay below 16 MiB.
     /// Returns `ciphertext || tag`.
     static func aesCCMEncrypt(key: Data, nonce: Data, payload: Data) -> Data? {
-        guard key.count == 16, nonce.count == 12 else { return nil }
+        guard key.count == 16, nonce.count == 12, payload.count < (1 << 24) else { return nil }
         let m = 4 // tag bytes (mac size 32 bits)
         let l = 15 - nonce.count // = 3
-        let flagsB0 = (UInt8(m - 2) << 3) | UInt8(l - 1) // no adata => 0x0A
+        // RFC 3610 section 2.2: M' = (M - 2) / 2, not M - 2.
+        let flagsB0 = (UInt8((m - 2) / 2) << 3) | UInt8(l - 1) // no adata => 0x0A
         let flagsA0 = UInt8(l - 1) // 0x02
 
         // B0 = flags || nonce || message length (3-byte big-endian)
@@ -111,7 +112,7 @@ enum XiaomiCrypto {
         var blockIndex: UInt32 = 1
         var offset = 0
         while offset < payload.count {
-            guard var stream = streamBlock(blockIndex) else { return nil }
+            guard let stream = streamBlock(blockIndex) else { return nil }
             let count = min(16, payload.count - offset)
             for i in 0..<count {
                 cipher.append(inBytes[offset + i] ^ stream[i])

@@ -2,9 +2,12 @@ import CoreGraphics
 import Foundation
 
 struct WatchFaceProject: Hashable {
+    /// Stable identity for the native project format. Older projects did not
+    /// have an id; decoding generates one and they are upgraded on save.
+    var projectID: UUID = UUID()
     var name: String
     var deviceID: String
-    var format: ProjectFormat = .fprj
+    var format: ProjectFormat = .mirante
     var widgets: [WidgetItem] = []
     var aodWidgets: [WidgetItem] = []
     var usesAOD: Bool = false
@@ -13,6 +16,8 @@ struct WatchFaceProject: Hashable {
     /// string. Persisted alongside the JSON so imported images survive
     /// relaunches and render in Explore previews.
     var images: [String: Data] = [:]
+    /// Widgets protected from accidental canvas manipulation.
+    var lockedWidgetIDs: Set<UUID> = []
 
     var device: Device { Device.find(deviceID) ?? Device.all[0] }
 
@@ -26,15 +31,29 @@ struct WatchFaceProject: Hashable {
     func imageData(for widgetID: UUID) -> Data? {
         images[widgetID.uuidString]
     }
+
+    func imageData(for widgetID: UUID, listIndex: Int) -> Data? {
+        images["\(widgetID.uuidString)#\(listIndex)"] ?? (listIndex == 0 ? images[widgetID.uuidString] : nil)
+    }
+
+    /// Looks up a named asset used by imported FPRJ analog/pointer widgets.
+    /// Native projects may also keep the same basename in their asset table.
+    func imageData(named name: String, fallbackWidgetID: UUID? = nil) -> Data? {
+        guard !name.isEmpty else {
+            return fallbackWidgetID.flatMap { imageData(for: $0) }
+        }
+        return images[name] ?? fallbackWidgetID.flatMap { imageData(for: $0) }
+    }
 }
 
 extension WatchFaceProject: Codable {
     private enum CodingKeys: String, CodingKey {
-        case name, deviceID, format, widgets, aodWidgets, usesAOD, updatedAt, images
+        case projectID, name, deviceID, format, widgets, aodWidgets, usesAOD, updatedAt, images, lockedWidgetIDs
     }
 
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
+        projectID = try c.decodeIfPresent(UUID.self, forKey: .projectID) ?? UUID()
         name = try c.decode(String.self, forKey: .name)
         deviceID = try c.decode(String.self, forKey: .deviceID)
         format = try c.decodeIfPresent(ProjectFormat.self, forKey: .format) ?? .fprj
@@ -43,10 +62,12 @@ extension WatchFaceProject: Codable {
         usesAOD = try c.decodeIfPresent(Bool.self, forKey: .usesAOD) ?? false
         updatedAt = try c.decodeIfPresent(Date.self, forKey: .updatedAt) ?? Date()
         images = try c.decodeIfPresent([String: Data].self, forKey: .images) ?? [:]
+        lockedWidgetIDs = try c.decodeIfPresent(Set<UUID>.self, forKey: .lockedWidgetIDs) ?? []
     }
 
     func encode(to encoder: Encoder) throws {
         var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(projectID, forKey: .projectID)
         try c.encode(name, forKey: .name)
         try c.encode(deviceID, forKey: .deviceID)
         try c.encode(format, forKey: .format)
@@ -55,26 +76,33 @@ extension WatchFaceProject: Codable {
         try c.encode(usesAOD, forKey: .usesAOD)
         try c.encode(updatedAt, forKey: .updatedAt)
         try c.encode(images, forKey: .images)
+        try c.encode(lockedWidgetIDs, forKey: .lockedWidgetIDs)
     }
 }
 
 enum ProjectFormat: String, CaseIterable, Identifiable, Codable {
+    case mirante
     case fprj
     case gmf
 
     var id: String { rawValue }
     var displayName: String {
         switch self {
+        case .mirante: return "Mirante (recommended)"
         case .fprj: return "FPRJ (EasyFace)"
         case .gmf: return "GMF"
         }
     }
     var fileExtension: String { rawValue }
+
+    var isNative: Bool { self == .mirante }
 }
 
 extension WatchFaceProject {
     static func new(name: String, device: Device) -> WatchFaceProject {
-        WatchFaceProject(name: name, deviceID: device.id)
+        var project = WatchFaceProject(name: name, deviceID: device.id)
+        project.format = .mirante
+        return project
     }
 }
 
@@ -83,7 +111,7 @@ struct RecentProject: Codable, Identifiable, Hashable {
     var id = UUID()
     var name: String
     var deviceID: String
-    var format: ProjectFormat = .fprj
+    var format: ProjectFormat = .mirante
     var updatedAt: Date
     var fileURL: URL
     /// True when the project was imported from a .fprj file; nil for legacy
@@ -133,7 +161,10 @@ enum RecentsStore {
 
         var list = load()
         let recent: RecentProject
-        if let index = list.firstIndex(where: { $0.name == project.name && $0.deviceID == project.deviceID }) {
+        if let index = list.firstIndex(where: {
+            $0.fileURL.lastPathComponent.contains(project.projectID.uuidString)
+                || ($0.name == project.name && $0.deviceID == project.deviceID)
+        }) {
             list[index].updatedAt = project.updatedAt
             list[index].format = project.format
             if let isImported { list[index].isImported = isImported }
@@ -141,7 +172,7 @@ enum RecentsStore {
             recent = list[index]
             list.remove(at: index)
         } else {
-            let fileURL = directory.appendingPathComponent("\(sanitized(project.name))-\(UUID().uuidString.prefix(8)).json")
+            let fileURL = directory.appendingPathComponent("\(sanitized(project.name))-\(project.projectID.uuidString).json")
             try? data.write(to: fileURL)
             recent = RecentProject(
                 name: project.name,

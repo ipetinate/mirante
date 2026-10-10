@@ -24,6 +24,9 @@ struct ConnectionSheet: View {
                 if transport.isSupported {
                     Form {
                         statusSection
+                        if transport.installPhase != .idle {
+                            Section("Installation") { InstallStatusView() }
+                        }
                         authKeySection
                         scanSection
                         devicesSection
@@ -189,7 +192,7 @@ struct ConnectionSheet: View {
                     }
                     Spacer()
                     Group {
-                        if let key = transport.authKey {
+                        if transport.authKey != nil {
                             Label("Configured", systemImage: "checkmark.seal.fill")
                                 .foregroundStyle(.green)
                         } else {
@@ -317,11 +320,11 @@ struct ConnectionSheet: View {
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
-            if isInstalling {
+            if isInstalling || transport.installPhase != .idle {
                 HStack(spacing: 8) {
                     ProgressView(value: progressValue)
                         .controlSize(.small)
-                    Text(progressLabel)
+                    Text(installPhaseLabel)
                         .font(.callout)
                         .foregroundStyle(.secondary)
                 }
@@ -339,7 +342,7 @@ struct ConnectionSheet: View {
                 chooseOnMac()
                 #endif
             } label: {
-                Label("Import Mi Fitness Data…", systemImage: "key.slashf.svg")
+                Label("Import Mi Fitness Data…", systemImage: "key.horizontal")
             }
             if !extractedKeys.isEmpty {
                 ForEach(extractedKeys) { found in
@@ -405,6 +408,20 @@ struct ConnectionSheet: View {
             return String(localized: "Installing… \(Int(progress * 100))%")
         }
         return String(localized: "Installing…")
+    }
+
+    private var installPhaseLabel: String {
+        switch transport.installPhase {
+        case .idle: return progressLabel
+        case .preparing: return "Preparing installation…"
+        case .connecting: return "Opening watch connection…"
+        case .authenticating: return "Authenticating with band…"
+        case .negotiating: return "Negotiating transfer…"
+        case .uploading(let value): return "Uploading… \(Int(value * 100))%"
+        case .activating: return "Activating watchface…"
+        case .succeeded: return "Installation completed"
+        case .failed(let message): return "Installation failed: \(message)"
+        }
     }
 
     private var diagnosticsSection: some View {

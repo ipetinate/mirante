@@ -1,5 +1,7 @@
 import CryptoKit
+import CoreGraphics
 import Foundation
+import ImageIO
 
 /// The compiled o66 watchface produced by `O66Compiler`.
 struct O66CompiledFace {
@@ -163,20 +165,166 @@ enum O66Compiler {
                 ))
 
             case .imageList:
-                warnings.append("“\(widget.name)”: image-list widgets are not supported by the o66 compiler yet and were skipped.")
+                var frames: [O66RgbaImage] = []
+                for index in widget.bitmapList.indices {
+                    guard let data = project.imageData(for: widget.id, listIndex: index) else { continue }
+                    if let frame = try? O66ImageCodec.processed(
+                        data,
+                        width: max(1, widget.width),
+                        height: max(1, widget.height),
+                        radius: widget.radius,
+                        alpha: widget.alpha
+                    ) {
+                        frames.append(frame)
+                    }
+                }
+                guard !frames.isEmpty else {
+                    throw O66CompilerError.missingImage(widget.name)
+                }
+                elements.append(SourceElement(
+                    kind: .animation,
+                    x: widget.x,
+                    y: widget.y,
+                    listKeys: frames.map { store($0) },
+                    animIntervalMs: 1000,
+                    animRepeat: 0
+                ))
             case .analog:
-                warnings.append("“\(widget.name)”: analog displays are not supported by the o66 compiler yet and were skipped.")
+                let image = try analogImage(for: project, widget: widget)
+                elements.append(SourceElement(kind: .element, x: widget.x, y: widget.y, imageKey: store(image)))
             case .arc:
-                warnings.append("“\(widget.name)”: arc progress widgets are not supported by the o66 compiler yet and were skipped.")
+                guard let hex = resolvedDataSource(for: widget.valueSourceID, widgetName: widget.name, warnings: &warnings) else {
+                    continue
+                }
+                let arc = arcImage(for: widget)
+                elements.append(SourceElement(
+                    kind: .progress,
+                    x: widget.x,
+                    y: widget.y,
+                    imageKey: store(arc),
+                    dataSrc: hex
+                ))
             case .container:
-                warnings.append("“\(widget.name)”: container widgets are not supported by the o66 compiler yet and were skipped.")
+                // Containers are structural in the editable model; widgets
+                // are already flattened into the ordered project list, so no
+                // standalone O66 resource is needed for the container itself.
+                continue
             case .pointer:
-                warnings.append("“\(widget.name)”: pointer widgets are not supported by the o66 compiler yet and were skipped.")
+                // O66 has no generic pointer primitive. Bake the configured
+                // pointer bitmap at its anchor so the face remains usable;
+                // dynamic rotation is retained when the native protocol adds
+                // a pointer property in a future compiler revision.
+                guard let data = project.imageData(named: widget.pointerImage, fallbackWidgetID: widget.id),
+                      !widget.pointerImage.isEmpty else {
+                    throw O66CompilerError.missingImage(widget.name)
+                }
+                let image = try O66ImageCodec.processed(
+                    data,
+                    width: max(1, widget.width),
+                    height: max(1, widget.height),
+                    radius: 0,
+                    alpha: widget.alpha
+                )
+                elements.append(SourceElement(kind: .element, x: widget.x, y: widget.y, imageKey: store(image)))
             case .polyline:
-                warnings.append("“\(widget.name)”: polyline widgets are not supported by the o66 compiler yet and were skipped.")
+                let image = polylineImage(for: widget)
+                elements.append(SourceElement(kind: .element, x: widget.x, y: widget.y, imageKey: store(image)))
             }
         }
         return (elements, images)
+    }
+
+    /// Creates the foreground mask used by an O66 progress widget. The
+    /// firmware clips/scales this resource according to the bound data source;
+    /// the editor's start/end angles and color are baked into the mask.
+    private static func arcImage(for widget: WidgetItem) -> O66RgbaImage {
+        let width = max(1, widget.width)
+        let height = max(1, widget.height)
+        var rgba = [UInt8](repeating: 0, count: width * height * 4)
+        guard let context = CGContext(
+            data: &rgba,
+            width: width,
+            height: height,
+            bitsPerComponent: 8,
+            bytesPerRow: width * 4,
+            space: CGColorSpace(name: CGColorSpace.sRGB)!,
+            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+        ) else { return O66RgbaImage(rgba: rgba, width: width, height: height) }
+
+        let color = CGColor(
+            red: CGFloat(widget.colorR) / 255,
+            green: CGFloat(widget.colorG) / 255,
+            blue: CGFloat(widget.colorB) / 255,
+            alpha: CGFloat(widget.alpha) / 255
+        )
+        context.setStrokeColor(color)
+        context.setLineWidth(CGFloat(max(1, widget.arcLineWidth)))
+        context.setLineCap(.butt)
+        let inset = CGFloat(max(1, widget.arcLineWidth)) / 2
+        let rect = CGRect(x: inset, y: inset, width: CGFloat(width) - inset * 2, height: CGFloat(height) - inset * 2)
+        let center = CGPoint(x: rect.midX, y: rect.midY)
+        let radius = min(rect.width, rect.height) / 2
+        let start = CGFloat(widget.arcStartAngle) * .pi / 180
+        let end = CGFloat(widget.arcEndAngle) * .pi / 180
+        context.addArc(center: center, radius: radius, startAngle: start, endAngle: end, clockwise: false)
+        context.strokePath()
+        return O66RgbaImage(rgba: rgba, width: width, height: height)
+    }
+
+    /// Raster fallback for free-form lines. This preserves the authored shape
+    /// and colour in O66, whose generic element primitive is reliable even
+    /// though its dynamic polyline property is not exposed by this compiler.
+    private static func polylineImage(for widget: WidgetItem) -> O66RgbaImage {
+        let width = max(1, widget.width)
+        let height = max(1, widget.height)
+        var rgba = [UInt8](repeating: 0, count: width * height * 4)
+        guard let context = CGContext(data: &rgba, width: width, height: height,
+                                      bitsPerComponent: 8, bytesPerRow: width * 4,
+                                      space: CGColorSpace(name: CGColorSpace.sRGB)!,
+                                      bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else {
+            return O66RgbaImage(rgba: rgba, width: width, height: height)
+        }
+        context.setStrokeColor(CGColor(red: CGFloat(widget.colorR) / 255,
+                                       green: CGFloat(widget.colorG) / 255,
+                                       blue: CGFloat(widget.colorB) / 255,
+                                       alpha: CGFloat(widget.alpha) / 255))
+        context.setLineWidth(CGFloat(max(1, widget.lineWidth)))
+        context.setLineCap(.round)
+        guard let first = widget.pointList.first else {
+            return O66RgbaImage(rgba: rgba, width: width, height: height)
+        }
+        context.move(to: CGPoint(x: first.x * CGFloat(width), y: first.y * CGFloat(height)))
+        for point in widget.pointList.dropFirst() {
+            context.addLine(to: CGPoint(x: point.x * CGFloat(width), y: point.y * CGFloat(height)))
+        }
+        context.strokePath()
+        return O66RgbaImage(rgba: rgba, width: width, height: height)
+    }
+
+    /// Static fallback for analog faces. Named FPRJ assets are composited in
+    /// draw order; the native O66 backend cannot animate hand rotations yet.
+    private static func analogImage(for project: WatchFaceProject, widget: WidgetItem) throws -> O66RgbaImage {
+        let width = max(1, widget.width)
+        let height = max(1, widget.height)
+        var rgba = [UInt8](repeating: 0, count: width * height * 4)
+        guard let context = CGContext(data: &rgba, width: width, height: height,
+                                      bitsPerComponent: 8, bytesPerRow: width * 4,
+                                      space: CGColorSpace(name: CGColorSpace.sRGB)!,
+                                      bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else {
+            return O66RgbaImage(rgba: rgba, width: width, height: height)
+        }
+        let names = [widget.background, widget.hourHandImage, widget.minuteHandImage,
+                     widget.secondHandImage, widget.foreground]
+        var drew = false
+        for name in names where !name.isEmpty {
+            guard let data = project.imageData(named: name, fallbackWidgetID: widget.id),
+                  let source = CGImageSourceCreateWithData(data as CFData, nil),
+                  let image = CGImageSourceCreateImageAtIndex(source, 0, nil) else { continue }
+            context.draw(image, in: CGRect(x: 0, y: 0, width: width, height: height))
+            drew = true
+        }
+        guard drew else { throw O66CompilerError.missingImage(widget.name) }
+        return O66RgbaImage(rgba: rgba, width: width, height: height)
     }
 
     // MARK: - Preparation
@@ -547,10 +695,10 @@ enum O66Compiler {
 
     /// Full o66 build. `previewPNG` is the rendered face preview at the
     /// device's preview size; pass nil to embed the placeholder instead.
-    static func compile(project: WatchFaceProject, previewPNG: Data?) throws -> O66CompiledFace {
+    static func compile(project: WatchFaceProject, previewPNG: Data?, compressImages: Bool = true) throws -> O66CompiledFace {
         var warnings: [String] = []
         let (elements, images) = try sourceElements(from: project, warnings: &warnings)
-        let face = try prepare(elements: elements, images: images, compress: true)
+        let face = try prepare(elements: elements, images: images, compress: compressImages)
 
         let id = numericID(from: project.name, deviceID: project.deviceID)
         guard id.count == 9, id.allSatisfy(\.isNumber) else {
@@ -570,7 +718,7 @@ enum O66Compiler {
         } else {
             preview = placeholderPreview(width: previewWidth, height: previewHeight)
         }
-        let previewBlock = try O66ImageCodec.encodeRgbaBlock(preview, compress: true).block
+        let previewBlock = try O66ImageCodec.encodeRgbaBlock(preview, compress: compressImages).block
 
         let faceCount = 1
         let headersEnd = mainHeaderSize + faceCount * faceHeaderSize

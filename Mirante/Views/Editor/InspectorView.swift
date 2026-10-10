@@ -101,6 +101,7 @@ struct ProjectInfoForm: View {
 struct InspectorForm: View {
     @Environment(EditorState.self) private var editor
     let widget: WidgetItem
+    @State private var showCropSheet = false
 
     private var sources: [DataSource] {
         DataSourceCatalog.forDevice(editor.project.deviceID)
@@ -122,6 +123,11 @@ struct InspectorForm: View {
                     helpText: "Whether the widget is drawn on the face. Hides it without deleting it.",
                     \.visible
                 )
+                Toggle("Lock position and size", isOn: Binding(
+                    get: { editor.isLocked(widget.id) },
+                    set: { _ in editor.toggleLock(for: widget.id) }
+                ))
+                .help("Prevent accidental canvas moves and resizes")
                 opacityRow
             } header: {
                 Text("General")
@@ -188,6 +194,11 @@ struct InspectorForm: View {
             }
         }
         .formStyle(.grouped)
+        .sheet(isPresented: $showCropSheet) {
+            if let data = editor.imageData(for: widget.id) {
+                ImageCropSheet(data: data) { editor.cropSelectedImage(normalizedRect: $0) }
+            }
+        }
     }
 
     private var imageSection: some View {
@@ -199,6 +210,10 @@ struct InspectorForm: View {
                 prompt: "image.png",
                 \.bitmap
             )
+            if editor.imageData(for: widget.id) != nil {
+                Button { showCropSheet = true } label: { Label("Crop image…", systemImage: "crop") }
+                    .accessibilityIdentifier("crop-image-button")
+            }
             dimensionField(
                 "Corner Radius",
                 helpTitle: "Corner Radius",

@@ -6,7 +6,7 @@ struct NewProjectSheet: View {
 
     @State private var name = "Untitled"
     @State private var selectedDevice = Device.all[0]
-    @State private var format: ProjectFormat = .fprj
+    @State private var format: ProjectFormat = .mirante
     @State private var searchText = ""
 
     private var filteredDevices: [Device] {
@@ -36,9 +36,9 @@ struct NewProjectSheet: View {
                     Button("Create") {
                         editor.newProject(
                             name: name.trimmingCharacters(in: .whitespacesAndNewlines),
-                            device: selectedDevice
+                            device: selectedDevice,
+                            format: format
                         )
-                        editor.project.format = format
                         dismiss()
                     }
                     .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
@@ -113,6 +113,8 @@ struct NewProjectSheet: View {
 
     private var formatInfo: String {
         switch format {
+        case .mirante:
+            return "Formato nativo recomendado: suporta o editor completo do Mirante e evolui sem as limitações do Mi Create."
         case .fprj:
             return "FPRJ is the Mi-Create (EasyFace) format: an XML document built from widgets — images, image lists, digital numbers, analog hands, arc progress and containers. It is the format Mi-Create reads to assemble the watch face."
         case .gmf:

@@ -16,7 +16,7 @@ final class WatchFaceProjectTests: XCTestCase {
 
         XCTAssertEqual(project.name, "My Face")
         XCTAssertEqual(project.deviceID, device.id)
-        XCTAssertEqual(project.format, .fprj)
+        XCTAssertEqual(project.format, .mirante)
         XCTAssertFalse(project.usesAOD)
         XCTAssertTrue(project.widgets.isEmpty)
         XCTAssertTrue(project.aodWidgets.isEmpty)
@@ -72,12 +72,40 @@ final class WatchFaceProjectTests: XCTestCase {
     }
 
     func testProjectFormatDefaultsAndDisplayNames() {
-        XCTAssertEqual(ProjectFormat.allCases, [.fprj, .gmf])
+        XCTAssertEqual(ProjectFormat.allCases, [.mirante, .fprj, .gmf])
+        XCTAssertEqual(ProjectFormat.mirante.fileExtension, "mirante")
         XCTAssertEqual(ProjectFormat.fprj.fileExtension, "fprj")
         XCTAssertEqual(ProjectFormat.gmf.fileExtension, "gmf")
         for format in ProjectFormat.allCases {
             XCTAssertFalse(format.displayName.isEmpty)
             XCTAssertFalse(format.rawValue.isEmpty)
         }
+    }
+
+    func testNativeProjectCodecRoundTrip() throws {
+        let device = try bandDevice()
+        var project = WatchFaceProject.new(name: "Native Face", device: device)
+        project.format = .mirante
+        project.usesAOD = true
+        project.updatedAt = Date(timeIntervalSince1970: 1_700_000_000.123)
+        project.widgets = [WidgetItem(kind: .digitalNumber, name: "Time")]
+        project.aodWidgets = [WidgetItem(kind: .image, name: "AOD")]
+
+        let data = try XCTUnwrap(project.exportMiranteData())
+        let decoded = try MiranteProjectCodec.decode(data)
+        XCTAssertEqual(decoded, project)
+        XCTAssertFalse(data.isEmpty)
+    }
+
+    func testNativeCodecPersistsLockedWidgets() throws {
+        let device = try bandDevice()
+        var project = WatchFaceProject.new(name: "Locked Face", device: device)
+        let widget = WidgetItem(kind: .digitalNumber, name: "Protected")
+        project.widgets = [widget]
+        project.lockedWidgetIDs = [widget.id]
+
+        let data = try XCTUnwrap(project.exportMiranteData())
+        let decoded = try MiranteProjectCodec.decode(data)
+        XCTAssertEqual(decoded.lockedWidgetIDs, [widget.id])
     }
 }

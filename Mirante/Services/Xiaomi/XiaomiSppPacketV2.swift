@@ -6,6 +6,7 @@ enum XiaomiSppPacketV2 {
     static let preamble: [UInt8] = [0xA5, 0xA5]
 
     enum PacketType: Int {
+        case nack = 0
         case ack = 1
         case sessionConfig = 2
         case data = 3

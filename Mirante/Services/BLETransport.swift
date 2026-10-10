@@ -3,6 +3,7 @@ import Foundation
 /// Abstraction over the (future) path that delivers a compiled watchface to a
 /// paired band. Deliberately conservative: nothing is ever pushed to a device
 /// without explicit user action, and every payload is validated first.
+@MainActor
 protocol WatchFaceTransport {
     var isAvailable: Bool { get }
     func validate(payload: Data, for device: Device) -> TransportValidation

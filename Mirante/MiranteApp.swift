@@ -8,12 +8,18 @@ import AppKit
 struct MiranteApp: App {
     @State private var editor = EditorState()
     @State private var bandTransport = BandTransport()
+    #if os(macOS)
+    @State private var emulator = EmulatorBridge()
+    #endif
 
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environment(editor)
                 .environment(bandTransport)
+                #if os(macOS)
+                .environment(emulator)
+                #endif
         }
         #if os(macOS)
         .defaultSize(

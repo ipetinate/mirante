@@ -20,7 +20,7 @@ struct ResizeEdges: OptionSet {
 
 /// A drag captured on the canvas container, measured in device pixels.
 struct CanvasDrag {
-    enum Mode { case move, resize }
+    enum Mode { case move, resize, rotate }
     var mode: Mode
     var widgetID: UUID
     var originX: Int
@@ -28,6 +28,9 @@ struct CanvasDrag {
     var startW: Int
     var startH: Int
     var edges: ResizeEdges
+    var startRotation: Double = 0
+    var startAngle: CGFloat = 0
+    var startLocation: CGPoint = .zero
 }
 
 /// Snap distance (device px) above which a guide line does not engage.
@@ -129,8 +132,8 @@ struct EditorCanvasView: View {
 #if os(macOS)
             .onContinuousHover { phase in
                 switch phase {
-                case .active(_):
-                    NSCursor.arrow.set()
+                case .active(let location):
+                    cursorMode(at: location, scale: fitScale).set()
                 case .ended:
                     NSCursor.arrow.set()
                 }
@@ -242,8 +245,14 @@ struct EditorCanvasView: View {
                 if drag == nil {
                     guard let selected = widgetOrSelected(at: value.startLocation, scale: scale) else { return }
                     editor.selection = selected.id
+                    guard !editor.isLocked(selected.id) else { return }
                     let edges = handleHitTest(at: value.startLocation, widget: selected, scale: scale)
-                    let mode: CanvasDrag.Mode = edges.isEmpty ? .move : .resize
+                    let rotation = rotationHandleHitTest(at: value.startLocation, widget: selected, scale: scale)
+                    let mode: CanvasDrag.Mode = rotation ? .rotate : (edges.isEmpty ? .move : .resize)
+                    let center = CGPoint(
+                        x: CGFloat(selected.x + selected.width / 2) * scale,
+                        y: CGFloat(selected.y + selected.height / 2) * scale
+                    )
                     drag = CanvasDrag(
                         mode: mode,
                         widgetID: selected.id,
@@ -251,7 +260,10 @@ struct EditorCanvasView: View {
                         originY: selected.y,
                         startW: selected.width,
                         startH: selected.height,
-                        edges: edges
+                        edges: edges,
+                        startRotation: selected.rotation,
+                        startAngle: atan2(value.startLocation.y - center.y, value.startLocation.x - center.x),
+                        startLocation: value.startLocation
                     )
                     activeDrag = drag
                     editor.beginGesture()
@@ -268,6 +280,12 @@ struct EditorCanvasView: View {
     }
 
     private func widgetOrSelected(at point: CGPoint, scale: CGFloat) -> WidgetItem? {
+        // Handles belong to the selected widget and must win over any widget
+        // behind it. This is especially important when two layers overlap.
+        if let selected = editor.selectedWidget,
+           (!handleHitTest(at: point, widget: selected, scale: scale).isEmpty || rotationHandleHitTest(at: point, widget: selected, scale: scale)) {
+            return selected
+        }
         for widget in editor.activeWidgets.reversed() {
             let frame = CGRect(
                 x: CGFloat(widget.x) * scale,
@@ -280,12 +298,43 @@ struct EditorCanvasView: View {
         return nil
     }
 
+    private func rotationHandleHitTest(at point: CGPoint, widget: WidgetItem, scale: CGFloat) -> Bool {
+        guard widget.kind == .polyline else { return false }
+        let center = CGPoint(x: CGFloat(widget.x + widget.width / 2) * scale,
+                             y: CGFloat(widget.y + widget.height / 2) * scale)
+        let radius = CGFloat(widget.height) * scale / 2 + 26
+        let theta = CGFloat(widget.rotation) * .pi / 180
+        let handle = CGPoint(x: center.x + sin(theta) * radius,
+                             y: center.y - cos(theta) * radius)
+        return hypot(point.x - handle.x, point.y - handle.y) <= max(24, 18 / max(scale, 0.01))
+    }
+
+    #if os(macOS)
+    private func cursorMode(at point: CGPoint, scale: CGFloat) -> NSCursor {
+        guard let widget = widgetOrSelected(at: point, scale: scale),
+              editor.selection == widget.id,
+              !editor.isLocked(widget.id) else { return .arrow }
+        let edges = handleHitTest(at: point, widget: widget, scale: scale)
+        if edges.contains(.left) && edges.contains(.top) || edges.contains(.right) && edges.contains(.bottom) {
+            return .crosshair
+        }
+        if edges.contains(.right) && edges.contains(.top) || edges.contains(.left) && edges.contains(.bottom) {
+            return .crosshair
+        }
+        if edges.contains(.left) || edges.contains(.right) { return .resizeLeftRight }
+        if edges.contains(.top) || edges.contains(.bottom) { return .resizeUpDown }
+        return .openHand
+    }
+    #endif
+
     private func handleHitTest(at point: CGPoint, widget: WidgetItem, scale: CGFloat) -> ResizeEdges {
         let w = CGFloat(widget.width) * scale
         let h = CGFloat(widget.height) * scale
         let x0 = CGFloat(widget.x) * scale
         let y0 = CGFloat(widget.y) * scale
-        let hh = max(10, 7 / scale) // handle hit area in device px
+        // Touch targets are intentionally generous; the visible marker stays
+        // compact while the hit area remains easy to grab on an iPhone.
+        let hh = max(18, 14 / scale) // handle hit area in device px
         var edges: ResizeEdges = []
         if abs(point.x - x0) <= hh { edges.insert(.left) }
         if abs(point.x - (x0 + w)) <= hh { edges.insert(.right) }
@@ -297,6 +346,15 @@ struct EditorCanvasView: View {
     private func apply(_ drag: CanvasDrag, dx: Int, dy: Int, scale: CGFloat) {
         let proposed: CGRect
         switch drag.mode {
+        case .rotate:
+            let center = CGPoint(x: CGFloat(drag.originX + drag.startW / 2) * scale,
+                                 y: CGFloat(drag.originY + drag.startH / 2) * scale)
+            let angle = atan2(drag.startLocation.y + CGFloat(dy) * scale - center.y,
+                              drag.startLocation.x + CGFloat(dx) * scale - center.x)
+            var delta = (angle - drag.startAngle) * 180 / .pi
+            delta = (delta + 180).truncatingRemainder(dividingBy: 360) - 180
+            editor.update({ $0.rotation = (drag.startRotation + Double(delta)).rounded() }, label: "Rotate")
+            return
         case .move:
             // No clamping: widgets may overflow the screen and are hidden by
             // the preview's clip shape.
@@ -477,6 +535,8 @@ struct EditorCanvasView: View {
                     }
                 }
             }
+        case .rotate:
+            break
         }
 
         let final = CGRect(x: x, y: y, width: w, height: h)
@@ -765,7 +825,7 @@ struct WidgetCanvasItem: View {
     }
 
     private var resizeHandles: some View {
-        let e: CGFloat = 8
+        let e: CGFloat = 12
         let w = CGFloat(widget.width) * scale
         let h = CGFloat(widget.height) * scale
         let centers: [(CGPoint, ResizeEdges)] = [
@@ -781,7 +841,7 @@ struct WidgetCanvasItem: View {
         return ZStack {
             ForEach(Array(centers.enumerated()), id: \.offset) { _, item in
                 let size = item.0
-                RoundedRectangle(cornerRadius: 1.5)
+                RoundedRectangle(cornerRadius: 2.5)
                     .fill(.tint)
                     .frame(width: e, height: e)
                     .overlay {

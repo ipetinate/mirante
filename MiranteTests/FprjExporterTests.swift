@@ -1,5 +1,6 @@
 import Foundation
 import XCTest
+import ZIPFoundation
 
 @testable import Mirante
 
@@ -289,7 +290,21 @@ final class FprjExporterTests: XCTestCase {
         let xml = FprjExporter.export(project)
         let data = project.exportData()
 
-        XCTAssertEqual(data, Data(xml.utf8))
+        // The exporter now bundles `face.xml` (plus any images) in a ZIP; the
+        // plain XML export must still stringify identically.
+        XCTAssertEqual(data.prefix(4), Data([0x50, 0x4B, 0x03, 0x04]))
+        guard let archive = try? Archive(data: data, accessMode: .read) else {
+            return XCTFail("exportData() did not produce a readable ZIP archive")
+        }
+        let faceXML = archive
+            .filter { $0.type == .file && $0.path.hasSuffix(".xml") }
+            .compactMap { entry -> String? in
+                var buffer = Data()
+                try? archive.extract(entry) { buffer.append($0) }
+                return String(data: buffer, encoding: .utf8)
+            }
+            .first
+        XCTAssertEqual(faceXML, xml)
         XCTAssertEqual(project.suggestedFileName, "My-Face.fprj")
     }
 
@@ -320,6 +335,54 @@ final class FprjExporterTests: XCTestCase {
 
         let parsed = try XCTUnwrap(roundTripWidgets([widget]).first)
         XCTAssertEqual(parsed, widget)
+    }
+
+    func testBundleRoundTripCarriesImages() throws {
+        var widget = WidgetItem(kind: .image, name: "Photo")
+        widget.bitmap = "photo.bmp"
+        widget.x = 1
+        widget.y = 2
+        widget.width = 64
+        widget.height = 64
+        var project = WatchFaceProject.new(name: "Bundle", device: try bandDevice())
+        project.widgets = [widget]
+        let payload = Data([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A])
+        project.images[widget.id.uuidString] = payload
+
+        let bundle = try XCTUnwrap(FprjExporter.exportBundle(project))
+        XCTAssertEqual(bundle.prefix(4), Data([0x50, 0x4B, 0x03, 0x04]))
+
+        let parsed = try XCTUnwrap(FprjParser.parseBundle(bundle))
+        XCTAssertEqual(parsed.name, "Bundle")
+        XCTAssertEqual(parsed.widgets.count, 1)
+        XCTAssertEqual(parsed.widgets[0].kind, .image)
+        XCTAssertEqual(parsed.widgets[0].x, widget.x)
+        XCTAssertEqual(parsed.widgets[0].y, widget.y)
+        XCTAssertEqual(parsed.images[widget.id.uuidString], payload, "image bytes must round-trip keyed by widget id")
+
+        let reexported = try XCTUnwrap(FprjExporter.exportBundle(parsed))
+        XCTAssertEqual(reexported, bundle, "re-export of a parsed bundle must be byte-stable")
+    }
+
+    func testAnalogBundleRoundTripPreservesNamedAssets() throws {
+        var widget = WidgetItem(kind: .analog, name: "Clock")
+        widget.background = "dial.png"
+        widget.hourHandImage = "hour.png"
+        widget.minuteHandImage = "minute.png"
+        var project = WatchFaceProject.new(name: "Analog Bundle", device: try bandDevice())
+        project.widgets = [widget]
+        let dial = Data([1, 2, 3])
+        let hour = Data([4, 5, 6])
+        let minute = Data([7, 8, 9])
+        project.images[widget.background] = dial
+        project.images[widget.hourHandImage] = hour
+        project.images[widget.minuteHandImage] = minute
+
+        let bundle = try XCTUnwrap(FprjExporter.exportBundle(project))
+        let parsed = try XCTUnwrap(FprjParser.parseBundle(bundle))
+        XCTAssertEqual(parsed.images["dial.png"], dial)
+        XCTAssertEqual(parsed.images["hour.png"], hour)
+        XCTAssertEqual(parsed.images["minute.png"], minute)
     }
 
     func testRoundTripDigitalNumberWidget() throws {

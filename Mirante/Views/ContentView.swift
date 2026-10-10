@@ -90,7 +90,7 @@ struct ContentView: View {
         }
         .fileImporter(
             isPresented: $editor.showFprjImporter,
-            allowedContentTypes: [fprjType],
+            allowedContentTypes: [fprjType, miranteType],
             allowsMultipleSelection: false
         ) { result in
             guard case .success(let urls) = result, let url = urls.first else { return }
@@ -143,6 +143,10 @@ struct ContentView: View {
     /// The dynamic UTI for ".fprj" files, produced/read by Mirante.
     private var fprjType: UTType {
         UTType(filenameExtension: "fprj") ?? .data
+    }
+
+    private var miranteType: UTType {
+        UTType(filenameExtension: "mirante") ?? .json
     }
 
     /// UTI for the compiled watchface binaries Mirante can receive.
@@ -372,11 +376,13 @@ struct WidgetLayerCarousel: View {
     @Environment(EditorState.self) private var editor
     @Environment(\.dismiss) private var dismiss
     @State private var dropRow: Int?
+    @State private var showExportSheet = false
 
     var body: some View {
         ScrollView(.horizontal) {
             HStack(spacing: 10) {
                 addCard
+                exportCard
                 ForEach(Array(displayWidgets.enumerated()), id: \.element.id) { displayRow, widget in
                     LayerCard(
                         widget: widget,
@@ -406,6 +412,9 @@ struct WidgetLayerCarousel: View {
                                 editor.selection = widget.id
                                 editor.showWidgetEditor = true
                             }
+                            Button(editor.isLocked(widget.id) ? "Unlock" : "Lock") {
+                                editor.toggleLock(for: widget.id)
+                            }
                             Button("Delete", role: .destructive) {
                                 editor.selection = widget.id
                                 editor.deleteSelected()
@@ -421,6 +430,9 @@ struct WidgetLayerCarousel: View {
         .scrollIndicators(.hidden)
         .background(.thinMaterial)
         .frame(height: 92)
+        .sheet(isPresented: $showExportSheet) {
+            ExportSheet()
+        }
     }
 
     private var displayWidgets: [WidgetItem] {
@@ -464,9 +476,36 @@ struct WidgetLayerCarousel: View {
             }
         }
     }
+
+    private var exportCard: some View {
+        Button {
+            showExportSheet = true
+        } label: {
+            VStack(spacing: 4) {
+                Image(systemName: "square.and.arrow.up")
+                    .font(.title2)
+                    .foregroundStyle(.tint)
+                Text("Export")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
+            .frame(width: 76, height: 76)
+            .background {
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(.quaternary.opacity(0.4))
+            }
+            .overlay {
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .strokeBorder(.quaternary, lineWidth: 1)
+            }
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("mobile-export-button")
+    }
 }
 
 private struct LayerCard: View {
+    @Environment(EditorState.self) private var editor
     let widget: WidgetItem
     let isSelected: Bool
     var isDropTarget = false
@@ -477,6 +516,11 @@ private struct LayerCard: View {
             Text(widget.name)
                 .font(.caption2)
                 .lineLimit(1)
+            if editor.isLocked(widget.id) {
+                Image(systemName: "lock.fill")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
         }
         .frame(width: 76)
         .padding(.horizontal, 4)

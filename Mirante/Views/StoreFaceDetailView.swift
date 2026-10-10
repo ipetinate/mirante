@@ -73,6 +73,7 @@ struct StoreFaceDetailView: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
+            InstallStatusView()
             Button(action: send) {
                 Label(
                     installLabel,
@@ -82,7 +83,7 @@ struct StoreFaceDetailView: View {
             }
             .buttonStyle(.borderedProminent)
             .controlSize(.large)
-            .disabled(!face.compiled || isDownloading)
+            .disabled(!face.compiled || isDownloading || transport.installPhase.isRunning)
             #if os(macOS)
             .keyboardShortcut(.return, modifiers: [])
             #endif

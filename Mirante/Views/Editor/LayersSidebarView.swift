@@ -37,6 +37,9 @@ struct LayersSidebarView: View {
                             editor.selection = widget.id
                             editor.duplicateSelected()
                         }
+                        Button(editor.isLocked(widget.id) ? "Unlock" : "Lock") {
+                            editor.toggleLock(for: widget.id)
+                        }
                         Button("Delete", role: .destructive) {
                             editor.selection = widget.id
                             editor.deleteSelected()
@@ -125,6 +128,7 @@ struct LayersSidebarView: View {
 }
 
 struct LayerRow: View {
+    @Environment(EditorState.self) private var editor
     let widget: WidgetItem
     let row: Int
     let onDrop: ([String]) -> Bool
@@ -136,6 +140,11 @@ struct LayerRow: View {
                 Text(widget.name)
                     .lineLimit(1)
                 Spacer()
+                if editor.isLocked(widget.id) {
+                    Image(systemName: "lock.fill")
+                        .foregroundStyle(.secondary)
+                        .font(.caption)
+                }
                 Text("\(row + 1)")
                     .foregroundStyle(.tertiary)
                     .monospacedDigit()

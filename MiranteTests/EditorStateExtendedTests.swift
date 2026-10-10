@@ -57,6 +57,28 @@ final class EditorStateExtendedTests: XCTestCase {
         XCTAssertEqual(editor.activeWidgets.count, WidgetKind.allCases.count)
     }
 
+    func testCreateBuildAndExportFlow() throws {
+        let editor = EditorState()
+        let device = try XCTUnwrap(Device.find("xiaomi_band_10_pro"))
+
+        editor.newProject(name: "Integration Face", device: device, format: .mirante)
+        editor.addWidget(kind: .digitalNumber)
+        XCTAssertEqual(editor.project.format, .mirante)
+        XCTAssertEqual(editor.activeWidgets.count, 1)
+
+        let compiled = try FaceBinCompiler.compile(editor.project)
+        XCTAssertTrue(CompiledFaceMagic.matches(compiled.data))
+        XCTAssertEqual(compiled.warnings, [])
+        try O66Compiler.assertStructuralIntegrity([UInt8](compiled.data))
+
+        let native = try XCTUnwrap(editor.project.exportMiranteData())
+        let restored = try MiranteProjectCodec.decode(native)
+        XCTAssertEqual(restored.projectID, editor.project.projectID)
+        XCTAssertEqual(restored.widgets, editor.project.widgets)
+        XCTAssertEqual(restored.deviceID, device.id)
+    }
+
+
     func testAddWidgetShapeSpecificDefaults() {
         let editor = EditorState()
         XCTAssertEqual(editor.project.device.id, "xiaomi_color")

@@ -8,9 +8,7 @@ import UniformTypeIdentifiers
 /// consistent across the canvas, the live preview, autosave and export.
 enum ImageTransform {
     /// Bakes any EXIF orientation into the pixel data so the image always
-    /// decodes upright. Returns the input bytes unchanged when there is no
-    /// orientation to apply, so already-correct images keep their original
-    /// encoding untouched.
+    /// decodes upright. This legacy entry point remains lossless.
     static func normalized(_ data: Data) -> Data? {
         guard let src = CGImageSourceCreateWithData(data as CFData, nil) else { return nil }
         guard let orientation = exifOrientation(src), orientation != 1 else { return data }
@@ -23,6 +21,30 @@ enum ImageTransform {
         ]
         guard let upright = CGImageSourceCreateThumbnailAtIndex(src, 0, options as CFDictionary) else { return nil }
         return pngData(from: upright)
+    }
+
+    /// Produces the device-sized working asset. Camera photos are often many
+    /// times larger than a watch screen; retaining those pixels in the project
+    /// only inflates autosaves and exported bundles. Downsampling happens while
+    /// decoding, so we never allocate the original camera-sized bitmap.
+    /// Opaque images use high-quality JPEG; images with transparency stay PNG.
+    static func optimized(_ data: Data, maxPixelSize: Int, quality: CGFloat = 0.92) -> Data? {
+        guard let src = CGImageSourceCreateWithData(data as CFData, nil),
+              let props = CGImageSourceCopyPropertiesAtIndex(src, 0, nil) as? [CFString: Any],
+              let width = props[kCGImagePropertyPixelWidth] as? Int,
+              let height = props[kCGImagePropertyPixelHeight] as? Int else { return nil }
+        let longest = max(width, height)
+        let limit = max(1, maxPixelSize)
+        let options: [CFString: Any] = [
+            kCGImageSourceCreateThumbnailFromImageAlways: true,
+            kCGImageSourceCreateThumbnailWithTransform: true,
+            kCGImageSourceThumbnailMaxPixelSize: min(longest, limit),
+            kCGImageSourceShouldCacheImmediately: true,
+        ]
+        guard let image = CGImageSourceCreateThumbnailAtIndex(src, 0, options as CFDictionary) else { return nil }
+        let hasAlpha = image.alphaInfo == .first || image.alphaInfo == .last
+            || image.alphaInfo == .premultipliedFirst || image.alphaInfo == .premultipliedLast
+        return encodedData(from: image, hasAlpha: hasAlpha, quality: quality)
     }
 
     /// Rotates an upright image clockwise by `quarterTurns` (1 = 90°).
@@ -44,6 +66,21 @@ enum ImageTransform {
             mirrorHorizontal: horizontal,
             mirrorVertical: !horizontal
         )
+    }
+
+    /// Crops an image using a normalized rectangle (0...1) and preserves the
+    /// alpha-aware encoding policy used by imported assets.
+    static func cropped(_ data: Data, normalizedRect: CGRect, quality: CGFloat = 0.92) -> Data? {
+        guard let image = decodedImage(data), image.width > 0, image.height > 0 else { return nil }
+        let rect = normalizedRect.standardized
+        let crop = CGRect(
+            x: rect.minX * CGFloat(image.width), y: rect.minY * CGFloat(image.height),
+            width: rect.width * CGFloat(image.width), height: rect.height * CGFloat(image.height)
+        ).integral.intersection(CGRect(x: 0, y: 0, width: image.width, height: image.height))
+        guard crop.width >= 1, crop.height >= 1, let result = image.cropping(to: crop) else { return nil }
+        let hasAlpha = result.alphaInfo == .first || result.alphaInfo == .last
+            || result.alphaInfo == .premultipliedFirst || result.alphaInfo == .premultipliedLast
+        return encodedData(from: result, hasAlpha: hasAlpha, quality: quality)
     }
 
     // MARK: - Rendering
@@ -109,15 +146,23 @@ enum ImageTransform {
     }
 
     private static func pngData(from image: CGImage?) -> Data? {
+        encodedData(from: image, hasAlpha: true, quality: 1)
+    }
+
+    private static func encodedData(from image: CGImage?, hasAlpha: Bool, quality: CGFloat) -> Data? {
         guard let image else { return nil }
         let data = NSMutableData()
+        let type = hasAlpha ? UTType.png.identifier : UTType.jpeg.identifier
         guard let dest = CGImageDestinationCreateWithData(
             data,
-            UTType.png.identifier as CFString,
+            type as CFString,
             1,
             nil
         ) else { return nil }
-        CGImageDestinationAddImage(dest, image, nil)
+        let properties: [CFString: Any] = hasAlpha
+            ? [:]
+            : [kCGImageDestinationLossyCompressionQuality: min(max(quality, 0), 1)]
+        CGImageDestinationAddImage(dest, image, properties as CFDictionary)
         guard CGImageDestinationFinalize(dest) else { return nil }
         return data as Data
     }

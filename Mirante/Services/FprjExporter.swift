@@ -1,4 +1,5 @@
 import Foundation
+import ZIPFoundation
 
 /// Serializes a project into the fprj (EasyFace) XML document shape.
 /// Written from the public format description — original implementation.
@@ -112,11 +113,74 @@ enum FprjExporter {
             .replacingOccurrences(of: "<", with: "&lt;")
             .replacingOccurrences(of: ">", with: "&gt;")
     }
+
+    // MARK: - ZIP bundle
+
+    /// Packages the XML plus every image widget's pixels into a ZIP, so a
+    /// shared/published `.fprj` carries its images. Layout:
+    ///
+    ///     face.xml
+    ///     images/img_<widgetId8>.png
+    ///
+    /// The XML inside references the zip-relative basenames, so it round-trips
+    /// through `FprjParser.parseBundle`. Widgets without pixel data (e.g.
+    /// generated digit frames, hand images) keep their original names and add
+    /// no entry.
+    static func exportBundle(_ project: WatchFaceProject) -> Data? {
+        var imageEntries: [String: (path: String, data: Data)] = [:]
+        var bundled = project
+        bundled.widgets = bundled.widgets.map { rewrite($0, project: project, imageEntries: &imageEntries) }
+        bundled.aodWidgets = bundled.aodWidgets.map { rewrite($0, project: project, imageEntries: &imageEntries) }
+
+        guard let archive = try? Archive(data: Data(), accessMode: .create) else { return nil }
+        guard let xmlData = export(bundled).data(using: .utf8) else { return nil }
+        guard (try? add(archive, path: "face.xml", data: xmlData)) != nil else { return nil }
+        for entry in imageEntries.values.sorted(by: { $0.path < $1.path }) where !entry.data.isEmpty {
+            guard (try? add(archive, path: entry.path, data: entry.data)) != nil else { return nil }
+        }
+        return archive.data
+    }
+
+    private static func rewrite(
+        _ widget: WidgetItem,
+        project: WatchFaceProject,
+        imageEntries: inout [String: (path: String, data: Data)]
+    ) -> WidgetItem {
+        if widget.kind == .analog {
+            for name in [widget.hourHandImage, widget.minuteHandImage,
+                         widget.secondHandImage, widget.background, widget.foreground]
+                where !name.isEmpty {
+                if let data = project.images[name], !data.isEmpty {
+                    imageEntries[name] = ("images/\(name)", data)
+                }
+            }
+            return widget
+        }
+        guard widget.kind == .image || widget.kind == .imageList,
+              let data = project.images[widget.id.uuidString],
+              !data.isEmpty else { return widget }
+        let name = "img_\(widget.id.uuidString.prefix(8)).png"
+        imageEntries[name] = ("images/\(name)", data)
+        var copy = widget
+        if widget.kind == .image {
+            copy.bitmap = name
+        } else {
+            copy.bitmapList = [name]
+        }
+        return copy
+    }
+
+    private static func add(_ archive: Archive, path: String, data: Data) throws {
+        _ = try archive.addEntry(with: path, type: .file, uncompressedSize: Int64(data.count)) { position, size in
+            let start = Int(position)
+            return data.subdata(in: start..<min(start + size, data.count))
+        }
+    }
 }
 
 extension WatchFaceProject {
     func exportData() -> Data {
-        Data(FprjExporter.export(self).utf8)
+        FprjExporter.exportBundle(self) ?? Data(FprjExporter.export(self).utf8)
     }
 
     var suggestedFileName: String {
@@ -182,6 +246,55 @@ enum FprjParser {
             project.aodWidgets = aodWidgets
         }
         return project
+    }
+
+    /// Reads an exported `.fprj` file: a ZIP bundle (XML + images) or a plain
+    /// legacy XML document. Images are mapped back into `project.images` keyed
+    /// by the widget's `@Id`.
+    static func parseBundle(_ data: Data) -> WatchFaceProject? {
+        guard data.starts(with: [0x50, 0x4B, 0x03, 0x04]) else {
+            return parse(String(data: data, encoding: .utf8) ?? "")
+        }
+        guard let archive = try? Archive(data: data, accessMode: .read) else { return nil }
+        let xmlEntry = archive
+            .filter { $0.type == .file && $0.path.hasSuffix(".xml") }
+            .min(by: { $0.path.count < $1.path.count })
+        guard let xmlEntry,
+              let xml = String(data: extract(xmlEntry, from: archive), encoding: .utf8),
+              let project = parse(xml) else { return nil }
+
+        var images: [String: Data] = [:]
+        for entry in archive where entry.type == .file && entry.path.hasPrefix("images/") {
+            let name = entry.path.split(separator: "/").last.map(String.init) ?? entry.path
+            let payload = extract(entry, from: archive)
+            if !payload.isEmpty { images[name] = payload }
+        }
+        guard !images.isEmpty else { return project }
+
+        var result = project
+        for (name, payload) in images {
+            result.images[name] = payload
+        }
+        for widget in result.widgets + result.aodWidgets {
+            let key = widget.id.uuidString
+            guard result.images[key] == nil else { continue }
+            let name: String?
+            switch widget.kind {
+            case .image: name = widget.bitmap
+            case .imageList: name = widget.bitmapList.first
+            default: name = nil
+            }
+            if let name, let image = images[name] {
+                result.images[key] = image
+            }
+        }
+        return result
+    }
+
+    private static func extract(_ entry: Entry, from archive: Archive) -> Data {
+        var buffer = Data()
+        try? archive.extract(entry) { buffer.append($0) }
+        return buffer
     }
 
     private static func attributes(from text: String) -> [String: String] {

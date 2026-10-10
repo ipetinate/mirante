@@ -14,16 +14,16 @@ enum FaceBinCompiler {
 
     /// Compiles with a caller-provided preview PNG (device-sized) baked into
     /// the package's preview block.
-    static func compile(_ project: WatchFaceProject, previewPNG: Data?) throws -> O66CompiledFace {
-        try O66Compiler.compile(project: project, previewPNG: previewPNG)
+    static func compile(_ project: WatchFaceProject, previewPNG: Data?, compressImages: Bool = true) throws -> O66CompiledFace {
+        try O66Compiler.compile(project: project, previewPNG: previewPNG, compressImages: compressImages)
     }
 
     /// Convenience used by the export/publish sheets: renders the live preview
     /// on the main actor, then compiles with that preview embedded.
     @MainActor
-    static func compile(_ project: WatchFaceProject, editor: EditorState) throws -> O66CompiledFace {
+    static func compile(_ project: WatchFaceProject, editor: EditorState, compressImages: Bool = true) throws -> O66CompiledFace {
         let preview = PreviewRenderer.renderPNG(project, editor: editor)
-        return try compile(project, previewPNG: preview)
+        return try compile(project, previewPNG: preview, compressImages: compressImages)
     }
 
     /// A stable, collision-likely-low 9-digit face id (FNV-1a, 32-bit, mod
