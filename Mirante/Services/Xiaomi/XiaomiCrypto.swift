@@ -55,16 +55,17 @@ enum XiaomiCrypto {
         return out
     }
 
-    /// CCM per RFC 3610 with the parameters the band uses: 12-byte nonce,
-    /// 4-byte authentication tag, no associated data. `Burdette`: L = 3,
-    /// so the length field is 3 bytes and the message must stay below 16 MiB.
-    /// Returns `ciphertext || tag`.
+    /// Mi Band 10 Pro's auth-step-3 CCM variant: 12-byte nonce, 4-byte
+    /// authentication tag, no associated data. The firmware's B0 flags use
+    /// M' = M - 2 (rather than RFC 3610's (M - 2) / 2); the RFC value lets
+    /// authentication appear to complete but subsequent encrypted commands
+    /// are misinterpreted. `L = 3`; returns `ciphertext || tag`.
     static func aesCCMEncrypt(key: Data, nonce: Data, payload: Data) -> Data? {
         guard key.count == 16, nonce.count == 12, payload.count < (1 << 24) else { return nil }
         let m = 4 // tag bytes (mac size 32 bits)
         let l = 15 - nonce.count // = 3
-        // RFC 3610 section 2.2: M' = (M - 2) / 2, not M - 2.
-        let flagsB0 = (UInt8((m - 2) / 2) << 3) | UInt8(l - 1) // no adata => 0x0A
+        // Hardware-validated Mi Band 10 Pro wire format: B0 M' = M - 2.
+        let flagsB0 = (UInt8(m - 2) << 3) | UInt8(l - 1)
         let flagsA0 = UInt8(l - 1) // 0x02
 
         // B0 = flags || nonce || message length (3-byte big-endian)

@@ -103,6 +103,14 @@ enum O66Compiler {
         return hex
     }
 
+    static func numberAnchorX(for widget: WidgetItem) -> Int {
+        switch widget.alignment {
+        case 1: return widget.x + widget.width / 2
+        case 2: return widget.x + widget.width
+        default: return widget.x
+        }
+    }
+
     // MARK: - Element building
 
     /// Builds the ordered element list from the project's widgets, mirroring
@@ -154,7 +162,9 @@ enum O66Compiler {
                 let frames = O66Glyphs.digitFrames(for: widget)
                 elements.append(SourceElement(
                     kind: .number,
-                    x: widget.x,
+                    // Editor x is the left edge; O66 treats digital-number x
+                    // as an anchor controlled by its alignment flag.
+                    x: numberAnchorX(for: widget),
                     y: widget.y,
                     listKeys: frames.map { store($0) },
                     dataSrc: hex,
@@ -493,6 +503,8 @@ enum O66Compiler {
                 property[19] = 2
             }
         case .progress:
+            // O66's widget class nibble for progress is 0x4. 0x5 is not a
+            // progress widget and makes firmware skip the dynamic arc.
             property[3] = 0x40
             O66Bytes.writeU24LE(&property, 8, widget.singleIndex ?? 0)
             property[11] = 2

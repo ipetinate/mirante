@@ -1,5 +1,27 @@
 import Foundation
 
+/// The Xiaomi V2 GATT channel. Band 10 Pro exposes both characteristics as
+/// notifiable; enabling both has correlated with successful session startup
+/// on the hardware logs, while writes remain on 005F.
+enum XiaomiBLEChannel {
+    static let serviceUUID = "FE95"
+    static let receiveUUID = "0000005E"
+    static let transmitUUID = "0000005F"
+
+    static func isProtocolCharacteristic(_ uuid: String) -> Bool {
+        let normalized = normalize(uuid)
+        return normalized == normalize(receiveUUID) || normalized == normalize(transmitUUID)
+    }
+
+    static func normalize(_ uuid: String) -> String {
+        var value = uuid.uppercased()
+        if value.hasSuffix("-0000-1000-8000-00805F9B34FB") {
+            value = String(value.dropLast("-0000-1000-8000-00805F9B34FB".count))
+        }
+        return value.trimmingCharacters(in: CharacterSet(charactersIn: "0"))
+    }
+}
+
 /// The byte-level frame shared by the classic SPP and BLE v2 variants of the
 /// Xiaomi protocol (port of `XiaomiSppPacketV2.java`).
 enum XiaomiSppPacketV2 {

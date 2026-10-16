@@ -109,6 +109,51 @@ final class O66Tests: XCTestCase {
         XCTAssertTrue(frames.allSatisfy { $0.width > 0 && $0.height > 0 })
     }
 
+    func testDigitOneIsUprightInTopFirstPixelBuffer() {
+        var widget = WidgetItem(kind: .digitalNumber, name: "Time", width: 112, height: 107)
+        widget.digits = 2
+        let one = O66Glyphs.digitFrames(for: widget)[1]
+
+        // The rounded 1 has a leftward hook at its top. Compare the occupied
+        // x range in the upper and lower thirds of the glyph's actual pixels.
+        let occupiedRows = (0..<one.height).filter { y in
+            (0..<one.width).contains { x in one.rgba[(y * one.width + x) * 4 + 3] > 127 }
+        }
+        XCTAssertFalse(occupiedRows.isEmpty)
+        guard let first = occupiedRows.first, let last = occupiedRows.last else { return }
+        let upperEnd = first + (last - first) / 3
+        let lowerStart = last - (last - first) / 3
+        func leftmostPixel(in rows: ClosedRange<Int>) -> Int? {
+            (0..<one.width).first { x in
+                rows.contains(where: { y in one.rgba[(y * one.width + x) * 4 + 3] > 127 })
+            }
+        }
+        guard let topLeft = leftmostPixel(in: first...upperEnd),
+              let bottomLeft = leftmostPixel(in: lowerStart...last) else {
+            XCTFail("Digit 1 is missing pixels in its upper or lower third")
+            return
+        }
+        XCTAssertLessThan(topLeft, bottomLeft, "The hook of digit 1 must be at the top of the RGBA buffer")
+    }
+
+    func testAsymmetricDigitFramesSurviveWatchfaceImageListEncoding() throws {
+        var widget = WidgetItem(kind: .digitalNumber, name: "Time", width: 112, height: 107)
+        widget.digits = 2
+        let frames = O66Glyphs.digitFrames(for: widget)
+        let keys = frames.indices.map { "digit-\($0)" }
+        let source = O66Compiler.SourceElement(
+            kind: .number, x: 0, y: 0, listKeys: keys, dataSrc: "081102", showCount: 2
+        )
+        let images = Dictionary(uniqueKeysWithValues: zip(keys, frames))
+        let prepared = try O66Compiler.prepare(elements: [source], images: images, compress: true)
+        let decoded = try O66ImageCodec.decodeImageListBlock(prepared.lists[0].block, offset: 0)
+        XCTAssertEqual(decoded.count, O66Glyphs.frameCount)
+        // 1 and 2 are asymmetric under vertical inversion; the real image-list
+        // encoder/decoder must preserve the corrected glyph pixels byte-for-byte.
+        XCTAssertEqual(decoded[1].rgba, frames[1].rgba)
+        XCTAssertEqual(decoded[2].rgba, frames[2].rgba)
+    }
+
     // MARK: - Compilation
 
     func testCompileWithImageAndNumber() throws {
@@ -142,6 +187,24 @@ final class O66Tests: XCTestCase {
         let result = try FaceBinCompiler.compile(project)
         XCTAssertEqual(result.warnings, [])
         try O66Compiler.assertStructuralIntegrity([UInt8](result.data))
+
+        let source = O66Compiler.SourceElement(kind: .progress, x: 0, y: 0, imageKey: "arc", dataSrc: "0811")
+        let prepared = O66Compiler.PreparedWidget(source: source, type: .progress, listIndex: nil, singleIndex: 2)
+        let property = try O66Compiler.makeWidgetProperty(prepared)
+        XCTAssertEqual(property[3], 0x40, "O66 identifies a progress widget with class 0x40")
+        XCTAssertEqual(Array(property[8...11]), [2, 0, 0, 2], "Arc progress must reference its foreground image")
+    }
+
+    func testDigitalNumberElementPositionUsesAlignmentAnchor() throws {
+        var warnings: [String] = []
+        for (alignment, expectedX) in [(0, 40), (1, 90), (2, 140)] {
+            var number = WidgetItem(kind: .digitalNumber, name: "Value", x: 40, y: 20, width: 100, height: 40)
+            number.alignment = alignment
+            let project = WatchFaceProject(name: "Anchor", deviceID: "band10pro", widgets: [number])
+            let (elements, _) = try O66Compiler.sourceElements(from: project, warnings: &warnings)
+            let numberElement = try XCTUnwrap(elements.first { $0.kind == .number })
+            XCTAssertEqual(numberElement.x, expectedX, "alignment=\(alignment)")
+        }
     }
 
     func testImageListCompilesAllFrames() throws {

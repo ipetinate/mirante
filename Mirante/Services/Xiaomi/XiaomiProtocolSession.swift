@@ -28,6 +28,7 @@ final class XiaomiProtocolSession {
     }
 
     func abort(_ error: Error) {
+        authenticated = false
         failure = error
         writes.fail(error)
         let pending = pendings
@@ -193,6 +194,10 @@ final class XiaomiProtocolSession {
     // MARK: - Inbound
 
     func handleIncoming(_ raw: Data) {
+        if stage == "Starting BLE v2 session" {
+            let sample = raw.prefix(24).map { String(format: "%02x", $0) }.joined(separator: " ")
+            onDiagnostic?("RX transport bytes during session start; bytes=\(raw.count), prefix=\(sample)")
+        }
         rxBuffer.append(raw)
         while true {
             let result = XiaomiSppPacketV2.parse(rxBuffer)
@@ -212,7 +217,14 @@ final class XiaomiProtocolSession {
     }
 
     private func process(_ packet: XiaomiSppPacketV2.Packet, bytes: Data) {
-        guard let type = packet.type else { return }
+        guard let type = packet.type else {
+            onDiagnostic?("RX invalid packet type=\(bytes.count > 2 ? Int(bytes[bytes.startIndex + 2] & 0x0F) : -1), bytes=\(bytes.count)")
+            return
+        }
+        if stage == "Starting BLE v2 session" {
+            let sample = packet.payload.prefix(24).map { String(format: "%02x", $0) }.joined(separator: " ")
+            onDiagnostic?("RX session-start frame type=\(type.rawValue), seq=\(packet.sequence), payloadBytes=\(packet.payload.count), prefix=\(sample)")
+        }
         if stage != "Uploading watchface", type == .data {
             onDiagnostic?("RX frame sequence=\(packet.sequence) channel=\(packet.payload.first.map { Int($0 & 15) } ?? -1) opcode=\(packet.payload.dropFirst().first.map(Int.init) ?? -1) bytes=\(packet.payload.count)")
         }
@@ -220,6 +232,12 @@ final class XiaomiProtocolSession {
         case .nack:
             abort(TransportError.transferFailed("The band requested missing packet \(packet.sequence) during \(stage). Reconnect before retrying."))
         case .sessionConfig:
+            if authenticated {
+                // A new session invalidates both directional keys. Never
+                // continue uploading with the old keys after a band restart.
+                abort(TransportError.transferFailed("The band restarted its communication session. Reconnect before installing again."))
+                return
+            }
             var event = XiaomiProto.CommandInfo()
             event.isSessionConfig = true
             resumeMatching(event)
@@ -259,8 +277,22 @@ final class XiaomiProtocolSession {
         }
         command = parsed
         command.raw = plain
-        onDiagnostic?("RX command type=\(command.type ?? -1) subtype=\(command.subtype ?? -1) status=\(command.status.map(String.init) ?? "absent")")
+        onDiagnostic?("RX command type=\(command.type ?? -1) subtype=\(command.subtype ?? -1) status=\(command.status.map(String.init) ?? "absent") watchfaceStatus=\(command.watchfaceStatus.map(String.init) ?? "absent") watchfaceAck=\(command.watchfaceAck.map(String.init) ?? "absent")")
+        if command.type == 16 {
+            onDiagnostic?("RX type-16 protobuf shape=\(Self.protobufShape(plain))")
+        }
         resumeMatching(command)
+    }
+
+    /// Logs protobuf field numbers/wire types only, never values, so diagnostics
+    /// can distinguish a service reply without exposing names, keys or payloads.
+    private static func protobufShape(_ data: Data, depth: Int = 0) -> String {
+        XiaomiProto.parse(data).map { field in
+            let nested = field.wire == 2 && depth < 2
+                ? "{\(protobufShape(field.data, depth: depth + 1))}"
+                : ""
+            return "f\(field.number)/w\(field.wire)/\(field.data.count)\(nested)"
+        }.joined(separator: ",")
     }
 
     private func ack(_ sequence: Int) {
@@ -286,7 +318,12 @@ final class XiaomiProtocolSession {
         // response (or first command) is never lost between the write and the
         // continuation registration.
         let readyGate = mountReply { $0.isSessionConfig || $0.type != nil }
-        try await write(XiaomiSppPacketV2.encodeSessionStartRequest())
+        // This must be the first BLE write on a fresh link. In the hardware-
+        // validated path it bypasses the serialized command queue; routing it
+        // through `write` can leave session startup waiting behind queued work
+        // and the band never starts the protocol session.
+        guard let writer else { throw TransportError.transferFailed("Transport is not ready.") }
+        try await writer(XiaomiSppPacketV2.encodeSessionStartRequest())
         _ = try await readyGate.wait()
 
         // Step 1: send our nonce and await the watch nonce.
@@ -351,7 +388,10 @@ final class XiaomiProtocolSession {
         setStage("Confirming encrypted authentication")
         let authGate = mountReply { reply in
             guard reply.type == 1 else { return false }
-            return reply.subtype == 27
+            // Some Band 10 Pro firmware revisions answer the auth command
+            // with a status-bearing type-1 reply instead of exposing only the
+            // subtype. Both forms mean the handshake is complete.
+            return reply.subtype == 27 || (reply.subtype == 5 && reply.auth?.authStatus != nil)
         }
         try await sendPlainCommand(
             XiaomiProto.buildAuthStep3Command(encryptedNonces: encryptedNonces, encryptedDeviceInfo: encryptedDeviceInfo)
@@ -365,8 +405,11 @@ final class XiaomiProtocolSession {
         }
         // BLE v2 uses encrypted protobuf commands after the nonce/auth
         // handshake. Only the response to that handshake unlocks installation.
-        encryptionGenerated = true
+        encryptionGenerated = authReply.subtype == 27
         authenticated = true
+        // The Band 10 Pro accepts the encrypted watchface request immediately
+        // after auth. Generic time/state requests before 4/4 received no reply
+        // on hardware and left the next BLE session unresponsive.
     }
 
     // MARK: - Watchface install
@@ -380,6 +423,8 @@ final class XiaomiProtocolSession {
             throw TransportError.validation(.notCompiled)
         }
         let size = payload.count
+        let md5 = XiaomiCrypto.md5(payload)
+        log("[install] request id=\(id) size=\(size) md5=\(md5.hex)")
 
         // 1. Tell the band a face is coming.
         setStage("Waiting for watchface install approval (4/4)")
@@ -389,12 +434,14 @@ final class XiaomiProtocolSession {
         log("[install] reply watchfaceStatus=\(installReply.watchfaceStatus.map(String.init) ?? "nil") watchfaceAck=\(installReply.watchfaceAck.map(String.init) ?? "nil")")
         log("[install] reply raw=\(installReply.raw?.hex ?? "nil")")
         if let status = installReply.watchfaceStatus, status != 0 {
+            // Status 5 was observed on the tested Band 10 Pro when the face
+            // name was already installed on the band.
+            if status == 5 { throw TransportError.faceAlreadyInstalled }
             throw TransportError.transferFailed("The band rejected the install (status \(status)).")
         }
 
         // 2. Negotiate the upload.
         setStage("Waiting for upload parameters (22/0)")
-        let md5 = XiaomiCrypto.md5(payload)
         let requestProtobuf = XiaomiProto.buildUploadRequestCommand(type: 16, md5: md5, size: size)
         log("[upload] request pb=\(requestProtobuf.hex) md5=\(md5.hex) size=\(size) id=\(id)")
         let ackGate = mountReply { $0.type == 22 && $0.subtype == 0 }

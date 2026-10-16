@@ -150,9 +150,18 @@ struct WidgetPreviewView: View {
                 .font(.system(size: max(8, CGFloat(widget.height) * scale * 0.8), weight: .semibold, design: .rounded))
                 .monospacedDigit()
                 .foregroundStyle(widget.widgetColor)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: numberAlignment)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .opacity(Double(widget.alpha) / 255)
+    }
+
+    private var numberAlignment: Alignment {
+        switch widget.alignment {
+        case 1: return .center
+        case 2: return .trailing
+        default: return .leading
+        }
     }
 
     private var analogView: some View {

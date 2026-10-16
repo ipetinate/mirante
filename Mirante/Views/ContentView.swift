@@ -265,6 +265,11 @@ struct HomeView: View {
                     }
                 }
                 .frame(maxWidth: 430)
+
+                Text("Version \(appVersion) (Build \(buildNumber))")
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
+                    .padding(.top, 8)
             }
             .padding(24)
         }
@@ -272,6 +277,14 @@ struct HomeView: View {
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
         #endif
+    }
+
+    private var appVersion: String {
+        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "—"
+    }
+
+    private var buildNumber: String {
+        Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "—"
     }
 
     /// Imports either an editable Mi Create/Mirante project (.fprj) or a

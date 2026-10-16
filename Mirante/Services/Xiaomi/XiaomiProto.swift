@@ -222,6 +222,46 @@ enum XiaomiProto {
 
     // MARK: - Command builders
 
+    /// Post-auth system requests, matching XiaomiSystemService (type 2).
+    static func buildSystemCommand(subtype: UInt32) -> Data {
+        var command = Writer()
+        command.field(1, UInt32(2))
+        command.field(2, subtype)
+        return command.data
+    }
+
+    static func buildSetTimeCommand(now: Date = Date(), timeZone: TimeZone = .current) -> Data {
+        let components = Calendar(identifier: .gregorian).dateComponents(in: timeZone, from: now)
+        var date = Writer()
+        date.field(1, UInt32(components.year!))
+        date.field(2, UInt32(components.month!))
+        date.field(3, UInt32(components.day!))
+        var time = Writer()
+        time.field(1, UInt32(components.hour!))
+        time.field(2, UInt32(components.minute!))
+        time.field(3, UInt32(components.second!))
+        // TimeZone offsets are sint32 in units of 15 minutes (ZigZag).
+        func zigZag(_ value: Int32) -> UInt32 {
+            UInt32(bitPattern: (value << 1) ^ (value >> 31))
+        }
+        var zone = Writer()
+        zone.field(1, zigZag(Int32(timeZone.secondsFromGMT(for: now) / 900)))
+        let dst = Int32(timeZone.daylightSavingTimeOffset(for: now) / 900)
+        if dst != 0 { zone.field(2, zigZag(dst)) }
+        zone.field(3, string: timeZone.identifier)
+        var clock = Writer()
+        clock.field(1, bytes: date.data)
+        clock.field(2, bytes: time.data)
+        clock.field(3, bytes: zone.data)
+        var system = Writer()
+        system.field(4, bytes: clock.data)
+        var command = Writer()
+        command.field(1, UInt32(2))
+        command.field(2, UInt32(3))
+        command.field(4, bytes: system.data)
+        return command.data
+    }
+
     /// Auth step 1: `Command(type=1, subtype=26, auth.phoneNonce{nonce})`.
     static func buildNonceCommand(nonce: Data) -> Data {
         var phoneNonce = Writer()

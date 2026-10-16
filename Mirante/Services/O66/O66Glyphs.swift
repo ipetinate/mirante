@@ -109,8 +109,8 @@ enum O66Glyphs {
                     frames.append(O66RgbaImage(rgba: rgba, width: cellWidth, height: cellHeight))
                     continue
                 }
-                context.translateBy(x: 0, y: CGFloat(cellHeight))
-                context.scaleBy(x: 1, y: -1)
+                // Core Text draws upright in the bitmap context's default
+                // coordinates; flipping here inverts the exported RGBA rows.
                 let x = (CGFloat(cellWidth) - advance) / 2
                 let baseline = (CGFloat(cellHeight) - ascent + descent) / 2
                 let position = CGPoint(x: x, y: baseline)

@@ -17,6 +17,7 @@ struct ConnectionSheet: View {
     @State private var showExtractImporter = false
     @State private var extractedKeys: [MiFitnessKeyExtractor.FoundKey] = []
     @State private var extractNotice: String?
+    @State private var extractNoticeIsSuccess = false
 
     var body: some View {
         NavigationStack {
@@ -135,10 +136,13 @@ struct ConnectionSheet: View {
         let accessing = url.startAccessingSecurityScopedResource()
         defer { if accessing { url.stopAccessingSecurityScopedResource() } }
         let found = MiFitnessKeyExtractor.extractKeys(from: url)
-        extractedKeys = found
-        extractNotice = found.isEmpty
-            ? String(localized: "No pairing keys found there. Look for the registerList_us file under MHWCahe/<device>/VirtualDevice_registerList/ in the backup.")
-            : nil
+        extractedKeys = MiFitnessKeyExtractor.authKeyCandidates(from: found)
+        extractNoticeIsSuccess = false
+        if extractedKeys.isEmpty {
+            extractNotice = String(localized: "No supported band auth key was found. Mirante accepts 32-character hex values from encryptKey, encrypt_key, authKey, or auth_key fields. Beacon and IRQ keys are not auth keys.")
+        } else {
+            extractNotice = nil
+        }
     }
 
     #if !os(iOS)
@@ -345,32 +349,52 @@ struct ConnectionSheet: View {
                 Label("Import Mi Fitness Data…", systemImage: "key.horizontal")
             }
             if !extractedKeys.isEmpty {
-                ForEach(extractedKeys) { found in
-                    LabeledContent(found.key) {
-                        HStack(spacing: 8) {
-                            Text(found.value)
+                Label(
+                    recommendedAuthKeyID == nil ? "Auth key candidates" : "Recommended auth key",
+                    systemImage: recommendedAuthKeyID == nil ? "key.horizontal" : "checkmark.seal.fill"
+                )
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(recommendedAuthKeyID == nil ? Color.accentColor : Color.green)
+                Text(recommendedAuthKeyID == nil
+                     ? "Mi Fitness auth keys use encryptKey/encrypt_key. Beacon and IRQ keys are excluded. Multiple matching bands were found, so choose the record for this band."
+                     : "Mi Fitness stores the band auth key as encryptKey (sometimes encrypt_key). Beacon and IRQ keys are excluded. If multiple bands are in the backup, match the record to this band.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+
+                ForEach(Array(extractedKeys.enumerated()), id: \.element.id) { _, found in
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack(alignment: .firstTextBaseline) {
+                            Text(found.key)
+                                .font(.subheadline.weight(.medium))
+                            if found.id == recommendedAuthKeyID {
+                                Text("Recommended")
+                                    .font(.caption2.weight(.semibold))
+                                    .foregroundStyle(.green)
+                            }
+                            Spacer(minLength: 8)
+                            Text("••••\(String(found.value.suffix(4))) · \(found.file)")
                                 .font(.system(.caption, design: .monospaced))
-                                .lineLimit(1)
-                            Text(found.file)
-                                .font(.caption2)
-                                .foregroundStyle(.tertiary)
+                                .foregroundStyle(.secondary)
                         }
-                    }
-                    if found.isAuthKeyCandidate {
-                        Button("Use as Auth Key") {
-                            if transport.setAuthKey(found.value) == nil {
-                                extractNotice = String(localized: "That value is not a valid 32-hex auth key.")
+                        Button(transport.authKey == found.value ? "Auth Key Active" : (found.id == recommendedAuthKeyID ? "Use Recommended Auth Key" : "Use This Auth Key")) {
+                            if transport.setAuthKey(found.value) != nil {
+                                extractNotice = String(localized: "Auth key saved securely and ready to use.")
+                                extractNoticeIsSuccess = true
+                            } else {
+                                extractNotice = String(localized: "Could not save this value as an auth key. Choose a 32-character hex encryptKey.")
+                                extractNoticeIsSuccess = false
                             }
                         }
                         .buttonStyle(.bordered)
                         .controlSize(.small)
+                        .disabled(transport.authKey == found.value)
                     }
                 }
             }
             if let extractNotice {
-                Text(extractNotice)
+                Label(extractNotice, systemImage: extractNoticeIsSuccess ? "checkmark.circle.fill" : "info.circle")
                     .font(.footnote)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(extractNoticeIsSuccess ? Color.green : Color.secondary)
             }
         } header: {
             Text("Extract Pairing Key")
@@ -379,6 +403,16 @@ struct ConnectionSheet: View {
                 .font(.footnote)
                 .foregroundStyle(.secondary)
         }
+    }
+
+    /// A field name can rank one candidate above another, but equally ranked
+    /// keys may belong to different bands. In that case, don't pretend Mirante
+    /// can identify the user's band from a secret alone.
+    private var recommendedAuthKeyID: String? {
+        guard let best = extractedKeys.first,
+              let bestPriority = best.authKeyPriority else { return nil }
+        let tied = extractedKeys.dropFirst().contains { $0.authKeyPriority == bestPriority }
+        return tied ? nil : best.id
     }
 
     private var authorizationLabel: String {

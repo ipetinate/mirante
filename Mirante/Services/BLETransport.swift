@@ -46,6 +46,7 @@ enum TransportError: LocalizedError {
     case bluetoothUnavailable
     case deviceNotPaired
     case transferFailed(String)
+    case faceAlreadyInstalled
     case sendingUnavailable
     case abortedByUser
     case authKeyRequired
@@ -58,6 +59,8 @@ enum TransportError: LocalizedError {
         case .bluetoothUnavailable: return String(localized: "Bluetooth is unavailable.")
         case .deviceNotPaired: return String(localized: "No supported band is paired.")
         case .transferFailed(let reason): return String(localized: "Transfer failed: \(reason)")
+        case .faceAlreadyInstalled:
+            return String(localized: "This watch face may already be installed on the band. Remove the existing face or give this one a different name, rebuild it, and try again.")
         case .sendingUnavailable:
             return String(localized: "This band doesn't expose the Xiaomi BLE protocol channel (GATT service FE95). Its install channel is Classic-SPP only, which iOS apps can't reach — keep it paired to Mi Fitness for now.")
         case .abortedByUser: return String(localized: "Installation cancelled.")

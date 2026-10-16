@@ -118,6 +118,7 @@ final class BandTransport: NSObject, WatchFaceTransport {
     @ObservationIgnored private var installServicesContinuation: CheckedContinuation<[CBService], Error>?
     @ObservationIgnored private var installCharacteristicsContinuation: CheckedContinuation<[CBCharacteristic], Error>?
     @ObservationIgnored private var installNotifyContinuation: CheckedContinuation<Void, Error>?
+    @ObservationIgnored private var installNotifyCharacteristicUUID: CBUUID?
     @ObservationIgnored private var installWriteContinuation: CheckedContinuation<Void, Error>?
     @ObservationIgnored private var installSession: XiaomiProtocolSession?
 
@@ -208,6 +209,21 @@ final class BandTransport: NSObject, WatchFaceTransport {
         lastErrorMessage = TransportError.bluetoothUnavailable.errorDescription
         #endif
     }
+
+    #if DEBUG && os(iOS)
+    func connectHardwareTestBand(id: UUID) {
+        guard let central, central.state == .poweredOn,
+              let peripheral = central.retrievePeripherals(withIdentifiers: [id]).first else {
+            print("[hardware-test] Peripheral is not in CoreBluetooth's known-device cache")
+            return
+        }
+        let name = peripheral.name ?? "Known band"
+        store(peripheral, rssi: 0, name: name)
+        guard let band = discoveredBands.first(where: { $0.id == id }) else { return }
+        print("[hardware-test] Connecting to the requested cached peripheral")
+        connect(to: band)
+    }
+    #endif
 
     func disconnect() {
         #if os(iOS)
@@ -306,6 +322,10 @@ final class BandTransport: NSObject, WatchFaceTransport {
                 throw TransportError.sendingUnavailable
             }
 
+            // Keep the proven Xiaomi channel behavior: 005E receives protocol
+            // frames; 005F is the write endpoint even when its properties also
+            // advertise notify. The known-good hardware install subscribed only
+            // to 005E.
             try await waitForInstallNotify(peripheral: peripheral, characteristic: channel.rx)
 
             // Some firmwares only expose write-without-response on the TX
@@ -314,8 +334,15 @@ final class BandTransport: NSObject, WatchFaceTransport {
                 ? .withResponse
                 : .withoutResponse
             let maxWrite = peripheral.maximumWriteValueLength(for: writeType)
-            // CoreBluetooth returns payload capacity, already excluding ATT.
-            let writeChunk = max(1, maxWrite)
+            // Keep the proven Band 10 Pro framing margin. Although
+            // CoreBluetooth reports a payload capacity, this firmware's
+            // FE95 characteristic has historically accepted frames reliably
+            // only with the 3-byte ATT margin removed.
+            let writeChunk = max(20, maxWrite - 3)
+            recordInstallDiagnostic(
+                "BLE channel; subscribed notify=\(channel.rx.uuid.uuidString), "
+                    + "write=\(channel.tx.uuid.uuidString) [\(propertiesString(channel.tx.properties))]"
+            )
             recordInstallDiagnostic("BLE v2; write payload capacity=\(writeChunk); withResponse=\(writeType == .withResponse)")
 
             let session = XiaomiProtocolSession()
@@ -351,7 +378,9 @@ final class BandTransport: NSObject, WatchFaceTransport {
         } catch {
             failInstallWaits(error)
             recordInstallDiagnostic("Failed: \(error.localizedDescription)")
-            central.cancelPeripheralConnection(peripheral)
+            // Preserve the established BLE connection after an install error.
+            // Canceling here was added after the known-good revision and made
+            // every timeout force the user to reconnect before another try.
             lastErrorMessage = error.localizedDescription
             installSession = nil
             installProgress = nil
@@ -381,6 +410,7 @@ final class BandTransport: NSObject, WatchFaceTransport {
         installServicesContinuation = nil
         installCharacteristicsContinuation = nil
         installNotifyContinuation = nil
+        installNotifyCharacteristicUUID = nil
         installWriteContinuation = nil
         services?.resume(throwing: error)
         characteristics?.resume(throwing: error)
@@ -399,7 +429,6 @@ final class BandTransport: NSObject, WatchFaceTransport {
     private struct XiaomiChannel {
         let rx: CBCharacteristic
         let tx: CBCharacteristic
-
         init?(rx: CBCharacteristic?, tx: CBCharacteristic?) {
             guard let rx, let tx else { return nil }
             self.rx = rx
@@ -432,7 +461,7 @@ final class BandTransport: NSObject, WatchFaceTransport {
 
     private func serviceMatches(_ uuid: CBUUID) -> Bool {
         let raw = uuid.uuidString.uppercased()
-        return raw == "FE95" || raw == "0000FE95" || raw.hasPrefix("0000FE95-0000-1000-8000")
+        return XiaomiBLEChannel.normalize(raw) == XiaomiBLEChannel.normalize(XiaomiBLEChannel.serviceUUID)
     }
 
     private func discoverCharacteristicsForInstall(
@@ -459,21 +488,16 @@ final class BandTransport: NSObject, WatchFaceTransport {
     /// channel UUID, which CoreBluetooth may report in short (`005E`), padded
     /// (`0000005E`) or full 128-bit expanded form.
     private func matches(characteristic: CBCharacteristic, shortHex: String) -> Bool {
-        let raw = characteristic.uuid.uuidString.uppercased()
-        if raw == shortHex { return true }
-        var expanded = raw
-        if expanded.hasSuffix("-0000-1000-8000-00805F9B34FB") {
-            expanded = expanded.replacingOccurrences(of: "-0000-1000-8000-00805F9B34FB", with: "")
-        }
-        let stripZeros: (String) -> String = { $0.trimmingCharacters(in: CharacterSet(charactersIn: "0")) }
-        return stripZeros(expanded) == stripZeros(shortHex)
+        XiaomiBLEChannel.normalize(characteristic.uuid.uuidString) == XiaomiBLEChannel.normalize(shortHex)
     }
 
     private func waitForInstallNotify(peripheral: CBPeripheral, characteristic: CBCharacteristic) async throws {
+        recordInstallDiagnostic("Enabling notify on \(characteristic.uuid.uuidString); alreadyEnabled=\(characteristic.isNotifying)")
         if characteristic.isNotifying { return }
         let deadline = installDeadline("enabling notifications")
         defer { deadline.cancel() }
         installNotifyContinuation = nil
+        installNotifyCharacteristicUUID = characteristic.uuid
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
             installNotifyContinuation = continuation
             peripheral.setNotifyValue(true, for: characteristic)
@@ -494,6 +518,9 @@ final class BandTransport: NSObject, WatchFaceTransport {
         let isBulk = frame.count > 8 && frame[2] == 3 && frame[8] == 2
         if !isBulk {
             recordInstallDiagnostic("Writing frame type=\(frame.count > 2 ? Int(frame[2]) : -1) sequence=\(frame.count > 3 ? Int(frame[3]) : -1) bytes=\(frame.count)")
+            if frame.count > 2, frame[2] == 2 {
+                recordInstallDiagnostic("Session request bytes=\(frame.map { String(format: "%02x", $0) }.joined())")
+            }
         }
         var offset = 0
         while offset < frame.count {
@@ -752,7 +779,7 @@ extension BandTransport: @preconcurrency CBPeripheralDelegate {
         error: Error?
     ) {
         guard peripheral.identifier == connectedDevice?.id,
-              matches(characteristic: characteristic, shortHex: "0000005E") else { return }
+              characteristic.uuid == installNotifyCharacteristicUUID else { return }
         if let pendingNotify = installNotifyContinuation {
             if let error {
                 pendingNotify.resume(throwing: error)
@@ -762,6 +789,7 @@ extension BandTransport: @preconcurrency CBPeripheralDelegate {
                 pendingNotify.resume(throwing: TransportError.transferFailed("The band did not enable notifications."))
             }
             installNotifyContinuation = nil
+            installNotifyCharacteristicUUID = nil
         }
     }
 
@@ -789,8 +817,15 @@ extension BandTransport: @preconcurrency CBPeripheralDelegate {
     ) {
         guard peripheral.identifier == connectedDevice?.id,
               matches(characteristic: characteristic, shortHex: "0000005E") else { return }
+        if installPhase.isRunning {
+            recordInstallDiagnostic("BLE notification on \(characteristic.uuid.uuidString); bytes=\(characteristic.value?.count ?? 0), sessionReady=\(installSession != nil), error=\(error?.localizedDescription ?? "none")")
+        }
         if let error { failInstallWaits(error); return }
         guard installSession != nil, error == nil, let value = characteristic.value else { return }
+        if installDetail == "Starting BLE v2 session" {
+            let sample = value.prefix(24).map { String(format: "%02x", $0) }.joined(separator: " ")
+            recordInstallDiagnostic("BLE RX during session start; characteristic=\(characteristic.uuid.uuidString), bytes=\(value.count), prefix=\(sample)")
+        }
         installSession?.handleIncoming(value)
     }
 
